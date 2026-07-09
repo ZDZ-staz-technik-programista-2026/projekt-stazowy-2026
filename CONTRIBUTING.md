@@ -1,54 +1,54 @@
-# Jak pracujemy w tym repozytorium
+# How we work in this repository
 
-Dokument obowiązuje cały zespół. Jeśli coś jest niejasne — pytaj **wcześnie**, nie blokuj się dłużej
-niż 30 minut.
-
----
-
-## 1. Zasada podstawowa
-
-**Nigdy nie commitujemy bezpośrednio na `main`.**
-
-Gałąź `main` jest chroniona — próba wypchnięcia zmian wprost na nią zostanie odrzucona przez GitHub.
-Każda zmiana wchodzi do `main` przez **Pull Request** zatwierdzony przez kolegę z zespołu.
+This document applies to the whole team. If something is unclear — **ask early**. Do not stay
+blocked for longer than 30 minutes.
 
 ---
 
-## 2. Zaczynamy pracę
+## 1. The core rule
+
+**Never commit directly to `main`.**
+
+The `main` branch is protected — pushing straight to it will be rejected by GitHub. Every change
+reaches `main` through a **pull request** approved by a teammate.
+
+---
+
+## 2. Starting work
 
 ```bash
-# jednorazowo
+# once
 git clone https://github.com/ZDZ-staz-technik-programista-2026/projekt-stazowy-2026.git
 cd projekt-stazowy-2026
 
-# przed każdym nowym zadaniem
+# before every new task
 git checkout main
-git pull                              # pobierz najnowszy stan
-git checkout -b feature/entry-form    # nowa gałąź na zadanie
+git pull                              # get the latest state
+git checkout -b feature/entry-form    # a new branch for the task
 ```
 
-### Nazewnictwo gałęzi
+### Branch naming
 
-Gałęzie nazywamy **po angielsku**, w formacie `typ/krotki-opis`:
+Branches follow the `type/short-description` pattern:
 
-| Typ | Kiedy | Przykład |
+| Type | When | Example |
 |---|---|---|
-| `feature/` | nowa funkcjonalność | `feature/entry-form` |
-| `fix/` | poprawka błędu | `fix/hours-validation` |
-| `docs/` | dokumentacja | `docs/readme-setup` |
-| `refactor/` | porządkowanie kodu bez zmiany działania | `refactor/entry-service` |
-| `test/` | testy | `test/status-transitions` |
+| `feature/` | new functionality | `feature/entry-form` |
+| `fix/` | bug fix | `fix/hours-validation` |
+| `docs/` | documentation | `docs/readme-setup` |
+| `refactor/` | tidying code without changing behaviour | `refactor/entry-service` |
+| `test/` | tests | `test/status-transitions` |
 
-Jedna gałąź = jedno zadanie z Jiry.
+One branch = one Jira task.
 
 ---
 
-## 3. Commity
+## 3. Commits
 
-- Piszemy **po angielsku**, w trybie rozkazującym: `add entry form validation`
-- Krótko i konkretnie — commit ma mówić **co** się zmieniło
-- Commitujemy **małymi porcjami**, nie raz na trzy dni
-- **Codzienny push** to dowód pracy (wymóg stażu)
+- Use the **imperative mood**: `add entry form validation`
+- Keep it short and specific — a commit message says **what** changed
+- Commit in **small chunks**, not once every three days
+- **Push every day** — it is your proof of work (an internship requirement)
 
 ```bash
 git add .
@@ -56,120 +56,123 @@ git commit -m "add entry status transitions"
 git push -u origin feature/entry-form
 ```
 
-**Dobre komunikaty:**
+**Good messages:**
 
 ```
 add entry form validation
 fix hours calculation for overnight entries
+reject overlapping entries for the same student
 update readme with setup instructions
 ```
 
-**Złe komunikaty:**
+**Bad messages:**
 
 ```
-poprawki          ← co poprawione?
-zmiany            ← jakie?
-asdf              ← nie
-fix               ← czego?
+fixes           ← which fixes?
+changes         ← what changed?
+asdf            ← no
+fix             ← fix what?
+wip             ← then do not push it to a pull request
 ```
 
 ---
 
-## 4. Pull Request
+## 4. Pull requests
 
-1. Wypchnij gałąź na GitHub (`git push`)
-2. Otwórz **Pull Request** do `main`
-3. Wypełnij szablon (pojawi się automatycznie) — **po polsku**
-4. Poproś kolegę o przegląd (**Reviewers**)
-5. Odpowiedz na komentarze i popraw kod
-6. Po zatwierdzeniu: **Squash and merge** → gałąź kasuje się automatycznie
+1. Push your branch to GitHub (`git push`)
+2. Open a **pull request** targeting `main`
+3. Fill in the template (it appears automatically)
+4. Request a review from a teammate (**Reviewers**)
+5. Respond to the comments and update the code
+6. Once approved: **Squash and merge** → the branch is deleted automatically
 
-### Zasady
+### Rules
 
-- **1 zatwierdzenie** od kolegi z zespołu jest wymagane przed scaleniem
-- Nie zatwierdzamy własnych Pull Requestów
-- Wszystkie komentarze muszą być **rozwiązane** (resolved) przed scaleniem
-- PR powinien być **mały** — łatwiej go przejrzeć. Jeśli zmienia 30 plików, prawdopodobnie
-  powinien być podzielony na kilka
-
----
-
-## 5. Przegląd kodu (code review)
-
-Przegląd cudzego kodu to **osobna umiejętność zawodowa** — ćwiczymy ją celowo (dzień 9).
-
-**Jako recenzent:**
-
-- czytaj kod i **pytaj**, jeśli czegoś nie rozumiesz — pytanie nie jest atakiem
-- komentuj kod, nie osobę: „ta funkcja robi dwie rzeczy" zamiast „źle to napisałeś"
-- doceniaj dobre rozwiązania — nie tylko wytykaj błędy
-- jeśli wszystko gra: **Approve**. Jeśli nie: **Request changes** z konkretnym uzasadnieniem
-
-**Jako autor:**
-
-- nie broń się — przegląd dotyczy kodu, nie Ciebie
-- jeśli się nie zgadzasz, wyjaśnij dlaczego; można się różnić
-- odpowiedz na **każdy** komentarz (nawet krótkim „poprawione")
+- **1 approval** from a teammate is required before merging
+- Never approve your own pull request
+- All comments must be **resolved** before merging
+- Keep pull requests **small** — small ones get reviewed properly. If yours touches 30 files,
+  it should probably be split
 
 ---
 
-## 6. Definicja ukończenia (Definition of Done)
+## 5. Code review
 
-Zadanie jest skończone, gdy **wszystkie** punkty są spełnione:
+Reviewing someone else's code is a **separate professional skill**. We practise it deliberately
+(day 9, task T-29).
 
-- [ ] kod działa lokalnie (frontend i backend uruchamiają się bez błędów)
-- [ ] Pull Request przejrzany i zatwierdzony przez kolegę
-- [ ] wszystkie komentarze w PR rozwiązane
-- [ ] zadanie w Jirze przeniesione do **Done**
-- [ ] *(od dnia 14)* testy `pytest` przechodzą
+**As a reviewer:**
+
+- read the code and **ask questions** when you do not understand something — a question is not an attack
+- comment on the code, not the person: "this function does two things" rather than "you wrote this badly"
+- point out what is done well, not only what is wrong
+- if everything looks right: **Approve**. If not: **Request changes** with a concrete reason
+
+**As an author:**
+
+- do not get defensive — the review is about the code, not about you
+- if you disagree, explain why; disagreeing is allowed
+- respond to **every** comment, even with a short "fixed"
 
 ---
 
-## 7. Czego nie commitujemy
+## 6. Definition of Done
 
-Sprawdź `.gitignore`, ale pamiętaj — najważniejsze:
+A task is finished when **all** of the following are true:
 
-- **plik bazy danych** (`*.db`, `*.sqlite3`) — każdy ma swoją lokalną bazę
+- [ ] the code runs locally (both frontend and backend start without errors)
+- [ ] the pull request has been reviewed and approved by a teammate
+- [ ] all pull request comments are resolved
+- [ ] the Jira task has been moved to **Done**
+- [ ] *(from day 14)* the `pytest` suite passes
+
+---
+
+## 7. What we never commit
+
+Check `.gitignore`, but the essentials are:
+
+- **the database file** (`*.db`, `*.sqlite3`) — everyone has their own local database
 - `node_modules/`, `venv/`, `__pycache__/`
-- pliki konfiguracyjne edytora, pliki systemowe (`.DS_Store`)
-- **jakiekolwiek prawdziwe dane osobowe** — pracujemy wyłącznie na danych fikcyjnych
+- editor settings and OS artefacts (`.DS_Store`)
+- `.env` files and any secrets
+- **any real personal data** — we work exclusively on fictional data
 
-> Jeśli przypadkiem wypchniesz coś wrażliwego — **powiedz od razu opiekunowi**.
-> Historia Gita jest publiczna i sam commit „usuwający" plik nie usuwa go z historii.
-
----
-
-## 8. Języki
-
-| Element | Język |
-|---|---|
-| Kod, nazwy zmiennych, funkcji, plików | angielski |
-| Nazwy gałęzi | angielski |
-| Komunikaty commitów | angielski |
-| Opisy Pull Requestów, komentarze w przeglądzie | polski |
-| README i dokumentacja | polski |
+> If you accidentally push something sensitive — **tell the supervisor immediately**.
+> The Git history is public, and a commit that "deletes" a file does not remove it from history.
 
 ---
 
-## 9. Narzędzia AI
+## 8. Language
 
-Korzystamy z **darmowych czatów** (ChatGPT, Gemini, Claude) jako pomocy przy nauce i pisaniu kodu.
-Nie używamy płatnych ani agentowych narzędzi (Copilot, Codex, Claude Code) — nie są wymagane.
+Everything in this repository is written in **English**: code, identifiers, file names, branch
+names, commit messages, pull request descriptions, code review comments, documentation and the
+application UI.
 
-**Zasady (regulamin stażu § 9):**
-
-- kod wygenerowany z pomocą AI musisz **zrozumieć**, samodzielnie **zweryfikować** i **przetestować**
-- odpowiedzialność za kod w Pull Requeście ponosi **jego autor**, nie czat
-- **zakaz wklejania** do narzędzi AI danych poufnych, danych klientów i danych osobowych
-- jeśli nie potrafisz wyjaśnić, jak działa Twój kod na przeglądzie — nie jest gotowy do scalenia
-
-AI **nie jest funkcją naszej aplikacji** — to wyłącznie narzędzie pracy.
+Spoken communication (stand-ups, client meetings, Slack) stays in Polish. The formal internship
+paperwork is in Polish and lives outside this repository.
 
 ---
 
-## 10. Charakter projektu
+## 9. AI tools
 
-Projekt ma charakter **wyłącznie edukacyjny/symulacyjny**. Pracujemy na **danych testowych
-i fikcyjnych uczniach**. Aplikacja nie zastępuje formalnego dzienniczka stażu prowadzonego dla ZDZ.
+We use **free chat assistants** (ChatGPT, Gemini, Claude) as a learning and coding aid.
+We do not use paid or agentic tooling (Copilot, Codex, Claude Code) — none of it is required.
 
-Obowiązuje regulamin stażu (§ 2–3, § 8, § 9, § 10).
+**Rules (internship regulations, § 9):**
+
+- you must **understand**, independently **verify** and **test** any code produced with AI help
+- responsibility for the code in a pull request lies with **its author**, not with the chat
+- **never paste** confidential information, client data or personal data into an AI tool
+- if you cannot explain how your code works during review, it is not ready to be merged
+
+AI is **not a feature of this application** — it is only a working tool.
+
+---
+
+## 10. Project character
+
+This is an **educational / simulation project**. We work on **test data and fictional students**.
+The application does not replace the official internship journal kept for ZDZ.
+
+The internship regulations apply (§ 2–3, § 8, § 9, § 10).
