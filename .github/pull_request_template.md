@@ -1,39 +1,58 @@
+# Opis zmiany
+
+<!-- Co zmienia ten Pull Request? 2–4 zdania, po polsku, własnymi słowami. -->
+
+## Powiązane zadanie
+
+<!-- Numer zadania w Jirze, np. DZIEN-12 -->
+
+## Rodzaj zmiany
+
+- [ ] Nowa funkcjonalność (`feature/`)
+- [ ] Poprawka błędu (`fix/`)
+- [ ] Dokumentacja (`docs/`)
+- [ ] Refaktoryzacja — bez zmiany działania (`refactor/`)
+- [ ] Testy (`test/`)
+
+## Jak to sprawdzić?
+
 <!--
-  Place this file at:  .github/pull_request_template.md
-  GitHub will then pre-fill every new Pull Request with the content below.
+Kroki, które recenzent ma wykonać, żeby zobaczyć, że zmiana działa. Np.:
+1. Uruchom backend i frontend
+2. Wejdź na /wpisy i dodaj wpis z godzinami 09:00–17:00
+3. Sprawdź, że liczba godzin wyliczyła się na 8
 -->
 
-## Summary
+1.
+2.
+3.
 
-<!-- What does this PR do, and why? 1–3 sentences. -->
+## Zrzuty ekranu
 
-## Related Jira issue
+<!-- Jeśli zmiana dotyczy interfejsu — wklej zrzut przed/po. Jeśli nie dotyczy, wpisz "nie dotyczy". -->
 
-<!-- e.g. PROJ-12  (or "none") -->
+---
 
-## Type of change
+## Lista kontrolna autora
 
-- [ ] ✨ Feature (new functionality)
-- [ ] 🐛 Fix (bug fix)
-- [ ] 📝 Docs (documentation only)
-- [ ] ♻️ Refactor / chore (no behaviour change)
+- [ ] Kod działa lokalnie (frontend i backend uruchamiają się bez błędów)
+- [ ] Gałąź nazwana zgodnie z konwencją (`feature/`, `fix/`, ...) i po angielsku
+- [ ] Commity mają sensowne, opisowe komunikaty po angielsku
+- [ ] Nie commituję pliku bazy danych, `node_modules/`, `venv/` ani pliku `.env`
+- [ ] W kodzie i danych testowych **nie ma prawdziwych danych osobowych**
+- [ ] **Rozumiem cały kod w tym PR** i potrafię go wyjaśnić na przeglądzie
+      (dotyczy także fragmentów napisanych z pomocą AI)
+- [ ] *(od dnia 14)* Testy `pytest` przechodzą
 
-## How I tested it
+## Dla recenzenta
 
-<!-- Steps you took to verify it works. -->
+- [ ] Przeczytałem kod i rozumiem, co robi
+- [ ] Sprawdziłem, że zmiana działa zgodnie z opisem „Jak to sprawdzić?"
+- [ ] Zadałem pytania tam, gdzie coś było niejasne
+- [ ] Wszystkie moje komentarze zostały rozwiązane
 
-## Screenshots
+---
 
-<!-- If this changes the UI, add before/after screenshots. Otherwise delete. -->
-
-## Checklist
-
-- [ ] I reviewed my own diff before requesting review
-- [ ] No secrets, passwords, or real/personal data are included
-- [ ] Only test/fake data is used
-- [ ] Docs updated if needed (README / comments)
-- [ ] Branch name and commits follow `CONTRIBUTING.md`
-
-## Notes for the reviewer
-
-<!-- Anything the reviewer should focus on or be aware of. -->
+> Przypomnienie: projekt ma charakter **edukacyjny/symulacyjny** i działa wyłącznie
+> na **danych testowych**. Merge tylko przez **Squash and merge**, po **1 zatwierdzeniu**
+> od kolegi z zespołu.
