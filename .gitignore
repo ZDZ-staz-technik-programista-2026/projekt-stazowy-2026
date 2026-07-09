@@ -1,64 +1,98 @@
-# ============================================================
-#  .gitignore — React (Vite) frontend + FastAPI (Python) backend
-#  Educational internship project — technik programista
-#  Place this file at the repository ROOT.
-# ============================================================
+# ---------------------------------------------------------------
+# Baza danych — KAŻDY MA SWOJĄ LOKALNĄ, nie commitujemy jej
+# ---------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
 
-# ----- Secrets & environment -------------------------------
-# NEVER commit real secrets. Commit an example instead: .env.example
-.env
-.env.*
-!.env.example
+# ---------------------------------------------------------------
+# Python / FastAPI
+# ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 
-# ----- Node / React / Vite (frontend/) ---------------------
+# Środowiska wirtualne
+venv/
+.venv/
+env/
+ENV/
+.python-version
+
+# Dystrybucja / build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testy i pokrycie kodu
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Typowanie / lintery
+.mypy_cache/
+.ruff_cache/
+
+# ---------------------------------------------------------------
+# Node / React / Vite
+# ---------------------------------------------------------------
 node_modules/
 dist/
 dist-ssr/
 build/
 .vite/
-*.local
-coverage/
-.eslintcache
+
+# Logi
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.pnpm-store/
+*.log
 
-# ----- Python / FastAPI (backend/) -------------------------
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-.eggs/
-.Python
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-# Test / type / lint caches
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-.tox/
+# Cache
+.eslintcache
+.parcel-cache/
 
-# ----- Databases (TEST DATA ONLY — no real data!) ----------
-*.db
-*.sqlite
-*.sqlite3
+# ---------------------------------------------------------------
+# Zmienne środowiskowe — NIGDY nie commitujemy
+# ---------------------------------------------------------------
+.env
+.env.*
+!.env.example
 
-# ----- Editors / IDE ---------------------------------------
-# .vscode/ is ignored for simplicity. If later you want to share
-# editor config with the team, un-ignore specific files, e.g.:
-#   !.vscode/extensions.json
-.vscode/
+# ---------------------------------------------------------------
+# Edytory i IDE
+# ---------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
 .idea/
 *.swp
+*.swo
+*~
 
-# ----- OS files --------------------------------------------
+# ---------------------------------------------------------------
+# Systemy operacyjne
+# ---------------------------------------------------------------
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
 Desktop.ini
+$RECYCLE.BIN/
+
+# ---------------------------------------------------------------
+# Pliki tymczasowe
+# ---------------------------------------------------------------
+*.tmp
+*.bak
+*.old
