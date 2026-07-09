@@ -1,58 +1,57 @@
-# Opis zmiany
+# What does this change?
 
-<!-- Co zmienia ten Pull Request? 2–4 zdania, po polsku, własnymi słowami. -->
+<!-- Describe the change in 2–4 sentences, in your own words. -->
 
-## Powiązane zadanie
+## Related Jira task
 
-<!-- Numer zadania w Jirze, np. DZIEN-12 -->
+<!-- Task ID, for example DZIEN-12 -->
 
-## Rodzaj zmiany
+## Type of change
 
-- [ ] Nowa funkcjonalność (`feature/`)
-- [ ] Poprawka błędu (`fix/`)
-- [ ] Dokumentacja (`docs/`)
-- [ ] Refaktoryzacja — bez zmiany działania (`refactor/`)
-- [ ] Testy (`test/`)
+- [ ] New feature (`feature/`)
+- [ ] Bug fix (`fix/`)
+- [ ] Documentation (`docs/`)
+- [ ] Refactoring — no behaviour change (`refactor/`)
+- [ ] Tests (`test/`)
 
-## Jak to sprawdzić?
+## How to verify it
 
 <!--
-Kroki, które recenzent ma wykonać, żeby zobaczyć, że zmiana działa. Np.:
-1. Uruchom backend i frontend
-2. Wejdź na /wpisy i dodaj wpis z godzinami 09:00–17:00
-3. Sprawdź, że liczba godzin wyliczyła się na 8
+Steps the reviewer should follow to see that the change works. For example:
+1. Start the backend and the frontend
+2. Go to /entries and create an entry from 09:00 to 17:00
+3. Check that the worked hours are shown as 8
 -->
 
 1.
 2.
 3.
 
-## Zrzuty ekranu
+## Screenshots
 
-<!-- Jeśli zmiana dotyczy interfejsu — wklej zrzut przed/po. Jeśli nie dotyczy, wpisz "nie dotyczy". -->
-
----
-
-## Lista kontrolna autora
-
-- [ ] Kod działa lokalnie (frontend i backend uruchamiają się bez błędów)
-- [ ] Gałąź nazwana zgodnie z konwencją (`feature/`, `fix/`, ...) i po angielsku
-- [ ] Commity mają sensowne, opisowe komunikaty po angielsku
-- [ ] Nie commituję pliku bazy danych, `node_modules/`, `venv/` ani pliku `.env`
-- [ ] W kodzie i danych testowych **nie ma prawdziwych danych osobowych**
-- [ ] **Rozumiem cały kod w tym PR** i potrafię go wyjaśnić na przeglądzie
-      (dotyczy także fragmentów napisanych z pomocą AI)
-- [ ] *(od dnia 14)* Testy `pytest` przechodzą
-
-## Dla recenzenta
-
-- [ ] Przeczytałem kod i rozumiem, co robi
-- [ ] Sprawdziłem, że zmiana działa zgodnie z opisem „Jak to sprawdzić?"
-- [ ] Zadałem pytania tam, gdzie coś było niejasne
-- [ ] Wszystkie moje komentarze zostały rozwiązane
+<!-- If the change touches the UI, paste a before/after screenshot. Otherwise write "not applicable". -->
 
 ---
 
-> Przypomnienie: projekt ma charakter **edukacyjny/symulacyjny** i działa wyłącznie
-> na **danych testowych**. Merge tylko przez **Squash and merge**, po **1 zatwierdzeniu**
-> od kolegi z zespołu.
+## Author checklist
+
+- [ ] The code runs locally (both frontend and backend start without errors)
+- [ ] The branch follows the naming convention (`feature/`, `fix/`, ...)
+- [ ] Commit messages are descriptive and written in the imperative mood
+- [ ] I am not committing the database file, `node_modules/`, `venv/` or `.env`
+- [ ] There is **no real personal data** in the code or in the test fixtures
+- [ ] **I understand every line in this pull request** and can explain it during review
+      (this includes anything written with the help of an AI assistant)
+- [ ] *(from day 14)* The `pytest` suite passes
+
+## Reviewer checklist
+
+- [ ] I read the code and understand what it does
+- [ ] I verified the change by following the "How to verify it" steps
+- [ ] I asked questions wherever something was unclear
+- [ ] All of my comments have been resolved
+
+---
+
+> Reminder: this is an **educational / simulation project** running on **test data only**.
+> Merge with **Squash and merge**, after **1 approval** from a teammate.
