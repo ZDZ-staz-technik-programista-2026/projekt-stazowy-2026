@@ -1,75 +1,78 @@
-# Dzienniczek stażu online
+# Internship Journal
 
-> ## ⚠️ PROJEKT DEMONSTRACYJNY — DANE TESTOWE
+> ## ⚠️ DEMO PROJECT — TEST DATA ONLY
 >
-> Ta aplikacja **nie zastępuje** formalnego dzienniczka stażu prowadzonego dla ZDZ.
-> Powstaje jako **projekt edukacyjny/symulacyjny** i działa **wyłącznie na fikcyjnych danych**
-> („Uczeń Testowy 1", „Uczeń Testowy 2"). Nie wprowadzamy do niej prawdziwych danych
-> osobowych ani realnych godzin stażu.
+> This application **does not replace** the official internship journal kept for ZDZ.
+> It is built as an **educational / simulation project** and runs **exclusively on fictional data**
+> ("Test Student 1", "Test Student 2"). We never enter real personal data or real
+> internship hours into it.
 
-Aplikacja webowa do prowadzenia dziennych wpisów stażowych: uczeń dodaje wpis (data, godziny,
-opis pracy, blokery), a opiekun zatwierdza go lub zwraca do poprawki.
-
----
-
-## Spis treści
-
-- [O projekcie](#o-projekcie)
-- [Stos technologiczny](#stos-technologiczny)
-- [Zespół i role](#zespół-i-role)
-- [Uruchomienie lokalne](#uruchomienie-lokalne)
-- [Struktura repozytorium](#struktura-repozytorium)
-- [Statusy wpisu](#statusy-wpisu)
-- [Zakres MVP](#zakres-mvp)
-- [Praca z repozytorium](#praca-z-repozytorium)
-- [Licencja](#licencja)
+A web application for daily internship entries: a student creates an entry (date, hours,
+work description, blockers) and the supervisor either approves it or returns it for revision.
 
 ---
 
-## O projekcie
+## Table of contents
 
-Projekt realizowany w ramach **stażu uczniowskiego** w zawodzie technik programista (351406),
-kwalifikacje INF.03 i INF.04.
+- [About](#about)
+- [Tech stack](#tech-stack)
+- [Team and roles](#team-and-roles)
+- [Local setup](#local-setup)
+- [Repository structure](#repository-structure)
+- [Entry statuses](#entry-statuses)
+- [Business rules](#business-rules)
+- [MVP scope](#mvp-scope)
+- [Working with this repository](#working-with-this-repository)
+- [Licence](#licence)
+- [Language conventions](#language-conventions)
+
+---
+
+## About
+
+Built during a **student internship** for the vocational qualification *technik programista* (351406),
+covering the INF.03 and INF.04 qualification units.
 
 | | |
 |---|---|
-| Termin | 08.07.2026 – 04.08.2026 (20 dni roboczych) |
-| Zakład pracy | PAWEŁ SZMIDT |
-| Opiekun stażu / „klient" | Paweł Szmidt |
-| Organizator | Zakład Doskonalenia Zawodowego w Białymstoku (ZDZ) |
-| Projekt UE | „Kształcenie zawodowe na potrzeby Gospodarki 4.0 i GOZ", nr FEPD.08.02-IZ.00-0005/24 |
+| Dates | 08.07.2026 – 04.08.2026 (20 working days) |
+| Host company | PAWEŁ SZMIDT |
+| Supervisor / "client" | Paweł Szmidt |
+| Organiser | Zakład Doskonalenia Zawodowego w Białymstoku (ZDZ) |
+| EU project | „Kształcenie zawodowe na potrzeby Gospodarki 4.0 i GOZ", no. FEPD.08.02-IZ.00-0005/24 |
 
 ---
 
-## Stos technologiczny
+## Tech stack
 
-| Warstwa | Technologia |
+| Layer | Technology |
 |---|---|
 | Frontend | React + Vite |
 | Backend | Python + FastAPI |
-| Baza danych | SQLite (docelowo opcjonalnie MySQL) |
+| Database | SQLite (optionally MySQL later) |
 | ORM | SQLAlchemy |
-| Testy | pytest |
-| Wdrożenie demo | Render / Vercel |
+| Tests | pytest |
+| Demo deployment | Render / Vercel |
 
 ---
 
-## Zespół i role
+## Team and roles
 
-| Osoba | Odpowiedzialność |
+| Person | Responsibility |
 |---|---|
-| Jakub Lewkowicz | Frontend (React), widoki ucznia i opiekuna, stylowanie |
-| Kacper Musiaka | Baza danych, API wpisów (FastAPI + SQLAlchemy), eksport CSV |
-| Michał Misiewicz | Logika statusów, walidacja limitów godzin, testy, wdrożenie |
+| Jakub Lewkowicz | Frontend (React), student and supervisor views, styling |
+| Kacper Musiaka | Database, entries API (FastAPI + SQLAlchemy), CSV export |
+| Michał Misiewicz | Status state machine, hours validation, tests, deployment |
 
 ---
 
-## Uruchomienie lokalne
+## Local setup
 
-> 🔧 **TODO (dzień 17):** uzupełnić po zbudowaniu aplikacji.
-> Każdy krok musi dać się wykonać na czystym komputerze — sprawdźcie to nawzajem.
+> 🔧 **TODO (day 17, task T-36):** fill this in once the app is built.
+> Every step must work on a clean machine — verify this by having a teammate follow it
+> **without asking the author any questions**.
 
-### Wymagania
+### Requirements
 
 - Python 3.11+
 - Node.js 20+
@@ -77,20 +80,20 @@ kwalifikacje INF.03 i INF.04.
 ### Backend
 
 ```bash
-# TODO: uzupełnić
+# TODO: fill in
 ```
 
 ### Frontend
 
 ```bash
-# TODO: uzupełnić
+# TODO: fill in
 ```
 
-Po uruchomieniu backendu automatyczna dokumentacja API dostępna jest pod `/docs`.
+Once the backend is running, the auto-generated API documentation is available at `/docs`.
 
 ---
 
-## Struktura repozytorium
+## Repository structure
 
 ```
 projekt-stazowy-2026/
@@ -103,69 +106,90 @@ projekt-stazowy-2026/
     └── package.json
 ```
 
-> 🔧 **TODO (dzień 6):** utworzyć katalogi `backend/` i `frontend/` przy konfiguracji projektu.
+> 🔧 **TODO (day 6, tasks T-07 and T-08):** create the `backend/` and `frontend/` directories
+> during project setup.
 
 ---
 
-## Statusy wpisu
+## Entry statuses
 
-Wpis w dzienniczku przechodzi przez zdefiniowane stany. **Tylko poniższe przejścia są dozwolone** —
-każde inne backend odrzuca.
+An entry moves through a small state machine. **Only the transitions below are allowed** —
+the backend rejects everything else with `409 Conflict`.
 
-| Status początkowy | Akcja | Status końcowy | Kto wykonuje |
+| From | Action | To | Performed by |
 |---|---|---|---|
-| `roboczy` | wyślij do zatwierdzenia | `wysłany` | uczeń |
-| `wysłany` | zatwierdź | `zatwierdzony` | opiekun |
-| `wysłany` | zwróć z komentarzem | `do poprawki` | opiekun |
-| `do poprawki` | popraw i wyślij ponownie | `wysłany` | uczeń |
-| `zatwierdzony` | — | — | stan końcowy |
+| `draft` | submit for approval | `submitted` | student |
+| `submitted` | approve | `approved` | supervisor |
+| `submitted` | return with a comment | `needs_revision` | supervisor |
+| `needs_revision` | revise and resubmit | `submitted` | student |
+| `approved` | — | — | final state |
+
+Returning an entry **without a comment** is not allowed.
 
 ---
 
-## Zakres MVP
+## Business rules
 
-Minimum, które musi działać na **Demo Day (04.08)**:
+All interns on this internship are adults, so the daily limit is a **per-student configuration
+field** (`student.daily_hours_limit`, default `8`) rather than something derived from age.
 
-- [ ] CRUD wpisu: data, godziny od–do, opis pracy, blokery
-- [ ] Automatyczne liczenie godzin z zakresu „od–do"
-- [ ] Workflow statusów (tabela powyżej)
-- [ ] Zwrot wpisu z komentarzem (widok opiekuna)
-- [ ] Widok ucznia (swoje wpisy) i widok opiekuna (lista do zatwierdzenia)
-- [ ] Wybór ucznia z listy (bez logowania)
-- [ ] Stały baner „DEMO — dane testowe" w interfejsie
-
-### Funkcjonalności dodatkowe (tylko z zapasem czasu, w tej kolejności)
-
-1. Walidacja limitów godzin (6 h / 8 h wg kategorii wieku; brak nakładania się wpisów)
-2. Statystyki tygodniowe (suma godzin, liczba wpisów, % zatwierdzonych)
-3. Eksport CSV / widok do druku
-4. Logowanie i role
-5. Widok kalendarza, filtrowanie, Docker
+- An entry must not exceed the student's `daily_hours_limit`
+- The weekly total must not exceed **40 hours**
+- Two entries for the same student **must not overlap** in time
+- Adjacent entries are fine: `09:00–12:00` and `12:00–16:00` do **not** overlap
+- The entry date must not be in the future; the work description must not be empty
 
 ---
 
-## Praca z repozytorium
+## MVP scope
 
-Zasady pracy z Git, nazewnictwo gałęzi, proces Pull Request i definicja ukończenia:
+The minimum that must work on **Demo Day (04.08)**:
+
+- [ ] Entry CRUD: date, start and end time, work description, blockers
+- [ ] Worked hours computed automatically from the time range
+- [ ] Status state machine (see table above)
+- [ ] Return an entry with a mandatory comment (supervisor view)
+- [ ] Student view (own entries) and supervisor view (approval queue)
+- [ ] Student selector instead of authentication
+- [ ] Daily, weekly and overlap validation
+- [ ] Permanent "DEMO — test data" banner in the UI
+
+### Optional features (only with spare capacity, in this order)
+
+1. Weekly statistics (total hours, entry count, % approved)
+2. CSV export / print view
+3. Filtering by date and status
+4. Docker, MySQL migration
+5. Authentication and roles
+
+---
+
+## Working with this repository
+
+Git workflow, branch naming, the pull request process and the Definition of Done:
 **[CONTRIBUTING.md](CONTRIBUTING.md)**
 
-Najważniejsze w skrócie:
+The short version:
 
-- nie commitujemy bezpośrednio na `main` — ochrona gałęzi odrzuci taki push,
-- każda zmiana wchodzi przez Pull Request,
-- PR wymaga **1 zatwierdzenia** od kolegi z zespołu.
-
----
-
-## Licencja
-
-> 🔧 **TODO (dzień 18):** wybór licencji projektu jest zadaniem stażowym
-> (obszar 15: prawo autorskie i licencjonowanie oprogramowania).
-> Do tego czasu repozytorium nie ma przypisanej licencji.
+- never commit directly to `main` — branch protection will reject the push,
+- every change lands through a pull request,
+- a pull request needs **1 approval** from a teammate.
 
 ---
 
-## Dokumentacja i języki
+## Licence
 
-- Dokumentacja, README i opisy Pull Requestów: **po polsku**
-- Kod, nazwy plików, gałęzi, zmiennych i commity: **po angielsku**
+> 🔧 **TODO (day 18, task T-39):** choosing the project licence is an internship task
+> (learning area 15: copyright and software licensing).
+> Until then this repository has no licence assigned.
+
+---
+
+## Language conventions
+
+Everything in this repository is written in **English**: code, file names, branch names,
+commit messages, pull request descriptions, code review comments, documentation and the
+application UI.
+
+The formal internship paperwork (programme, regulations, journal, attendance sheets) is kept
+**in Polish**, outside this repository — it is not part of the codebase.
