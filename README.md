@@ -168,14 +168,25 @@ field** (`student.daily_hours_limit`, default `8`) rather than something derived
 
 The minimum that must work on **Demo Day (04.08)**:
 
+- [ ] Authentication and roles (Student / Admin login panel)
+- [ ] User profiles (basic info: name, role, daily hours limit)
 - [ ] Entry CRUD: date, start and end time, work description, blockers
 - [ ] Worked hours computed automatically from the time range
 - [ ] Status state machine (see table above)
 - [ ] Return an entry with a mandatory comment (supervisor view)
-- [ ] Student view (own entries) and supervisor view (approval queue)
-- [ ] Student selector instead of authentication
+- [ ] Data privacy: students can only see and edit their own entries
+- [ ] Student view (own journal) and supervisor view (approval queue for all students)
+- [ ] Filtering entries by date and status
 - [ ] Daily, weekly and overlap validation
 - [ ] Permanent "DEMO — test data" banner in the UI
+
+### Optional features (only with spare capacity, in this order)
+
+1. Weekly statistics (total hours, entry count, % approved)
+2. Weekly progress bar with a remaining-capacity notice
+3. CSV export / print view
+4. In-app notifications for returned entries
+5. Docker containerisation of the backend
 
 ### Optional features (only with spare capacity, in this order)
 
