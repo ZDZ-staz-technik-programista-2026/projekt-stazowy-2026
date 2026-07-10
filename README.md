@@ -20,6 +20,7 @@ work description, blockers) and the supervisor either approves it or returns it 
 - [Local setup](#local-setup)
 - [Repository structure](#repository-structure)
 - [Entry statuses](#entry-statuses)
+- [Database](#database)
 - [Business rules](#business-rules)
 - [MVP scope](#mvp-scope)
 - [Working with this repository](#working-with-this-repository)
@@ -49,10 +50,11 @@ covering the INF.03 and INF.04 qualification units.
 |---|---|
 | Frontend | React + Vite |
 | Backend | Python + FastAPI |
-| Database | SQLite (optionally MySQL later) |
+| Database (local) | SQLite |
+| Database (production) | Managed MySQL — Aiven free tier |
 | ORM | SQLAlchemy |
 | Tests | pytest |
-| Demo deployment | Render / Vercel |
+| Demo deployment | Render (backend) / Vercel (frontend) |
 
 ---
 
@@ -128,6 +130,27 @@ Returning an entry **without a comment** is not allowed.
 
 ---
 
+## Database
+
+We run **two engines**, deliberately:
+
+| Environment | Engine | Why |
+|---|---|---|
+| Local development | SQLite | Zero configuration. Everyone has their own file, and it is never committed. |
+| Production (demo) | Managed MySQL — Aiven free tier | Render's free web services have an **ephemeral filesystem**: any local file, including a SQLite database, is wiped on every redeploy, restart or spin-down. A networked database is the only option. |
+
+SQLAlchemy makes this a change of connection string, not a rewrite — but the models must stay
+portable. Do **not** use SQLite-specific column types, and always give string columns an explicit
+length, because MySQL requires one and SQLite does not.
+
+The connection string is a **secret**. It lives in environment variables on the host and never
+in this repository. `.env` is in `.gitignore`.
+
+> The migration is task T-51, run by Kacper on day 18, and doubles as the database knowledge
+> transfer workshop for the rest of the team.
+
+---
+
 ## Business rules
 
 All interns on this internship are adults, so the daily limit is a **per-student configuration
@@ -159,7 +182,7 @@ The minimum that must work on **Demo Day (04.08)**:
 1. Weekly statistics (total hours, entry count, % approved)
 2. CSV export / print view
 3. Filtering by date and status
-4. Docker, MySQL migration
+4. Docker
 5. Authentication and roles
 
 ---
