@@ -4,15 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 origins = [
-    "http://localhost:5173", # defualt vite url
+    "http://localhost:5173", # default Vite URL
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins = origins,
     allow_credentials = False,  # No cookies | Can change later when doing authentication
-    allow_methods = ["*"],    # * - GET, POST, DELETE etc.
-    allow_headers = ["Content-Type"],
+    allow_methods = ["*"],
+    allow_headers = ["*"],
 )
 
 
