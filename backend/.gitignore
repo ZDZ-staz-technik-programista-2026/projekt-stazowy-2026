@@ -1,0 +1,98 @@
+# ---------------------------------------------------------------
+# Database — everyone has their own local file, never commit it
+# ---------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# ---------------------------------------------------------------
+# Python / FastAPI
+# ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+.python-version
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Tests and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Type checking and linting
+.mypy_cache/
+.ruff_cache/
+
+# ---------------------------------------------------------------
+# Node / React / Vite
+# ---------------------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Caches
+.eslintcache
+.parcel-cache/
+
+# ---------------------------------------------------------------
+# Environment variables — never commit these
+# ---------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------
+# Editors and IDEs
+# ---------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+
+# ---------------------------------------------------------------
+# Operating systems
+# ---------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---------------------------------------------------------------
+# Temporary files
+# ---------------------------------------------------------------
+*.tmp
+*.bak
+*.old
