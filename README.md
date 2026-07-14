@@ -81,8 +81,35 @@ covering the INF.03 and INF.04 qualification units.
 
 ### Backend
 
+Navigate to backend directory:
 ```bash
-# TODO: fill in
+cd backend
+```
+#### (If not installed) Create and activate virtual environment and install dependencies:
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+##### Note
+On macOS/Linux run:
+```bash
+source .venv/bin/activate
+```
+instead of:
+```bash
+.venv\Scripts\activate
+```
+#### Start FastAPI server:
+```bash
+fastapi dev
+```
+Backend will be available at: http://127.0.0.1:8000/
+
+To deactivate the virtual environment:
+```bash
+deactivate
 ```
 
 ### Frontend
