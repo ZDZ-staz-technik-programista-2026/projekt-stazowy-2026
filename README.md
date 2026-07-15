@@ -18,8 +18,10 @@ work description, blockers) and the supervisor either approves it or returns it 
 - [Tech stack](#tech-stack)
 - [Team and roles](#team-and-roles)
 - [Local setup](#local-setup)
+- [Frontend design system (Tailwind v4)](#frontend-design-system-tailwind-v4)
 - [Repository structure](#repository-structure)
 - [Entry statuses](#entry-statuses)
+- [Identity and roles](#identity-and-roles)
 - [Database](#database)
 - [Business rules](#business-rules)
 - [MVP scope](#mvp-scope)
@@ -48,7 +50,7 @@ covering the INF.03 and INF.04 qualification units.
 
 | Layer | Technology |
 |---|---|
-| Frontend | React + Vite |
+| Frontend | React + Vite, Tailwind CSS v4 (see [design system](#frontend-design-system-tailwind-v4)) |
 | Backend | Python + FastAPI |
 | Database (local) | SQLite |
 | Database (production) | Managed MySQL — Aiven free tier |
@@ -62,15 +64,15 @@ covering the INF.03 and INF.04 qualification units.
 
 | Person | Responsibility |
 |---|---|
-| Jakub Lewkowicz | Frontend (React), student and supervisor views, styling |
-| Kacper Musiaka | Database, entries API (FastAPI + SQLAlchemy), CSV export |
-| Michał Misiewicz | Status state machine, hours validation, tests, deployment |
+| Jakub Lewkowicz | Frontend (React), student and supervisor views, Tailwind design tokens, status badge component, accessibility pass |
+| Kacper Musiaka | Database, entries API (FastAPI + SQLAlchemy), CSV export, role-scoped reads (soft roles, paired with Jakub on frontend gating), early MySQL portability smoke test |
+| Michał Misiewicz | Status state machine, hours validation, tests, deployment, free-tier limits check |
 
 ---
 
 ## Local setup
 
-> 🔧 **TODO (day 17, task T-36):** fill this in once the app is built.
+> 🔧 **TODO (day 17):** fill this in once the app is built.
 > Every step must work on a clean machine — verify this by having a teammate follow it
 > **without asking the author any questions**.
 
@@ -114,11 +116,62 @@ deactivate
 
 ### Frontend
 
+The frontend lives in the `frontend/` directory at the root of the repository
+(`projekt-stazowy-2026/frontend`): a React application scaffolded with Vite.
+
+Navigate to the frontend directory:
 ```bash
-# TODO: fill in
+cd frontend
 ```
 
+Install dependencies:
+```bash
+npm install
+```
+
+Start the Vite dev server:
+```bash
+npm run dev
+```
+
+Frontend will be available at: http://127.0.0.1:5173/ (Vite's default dev server port)
+
 Once the backend is running, the auto-generated API documentation is available at `/docs`.
+
+---
+
+## Frontend design system (Tailwind v4)
+
+This project uses **Tailwind CSS v4**, set up via the `@tailwindcss/vite` plugin.
+
+> Note: there is **no** `tailwind.config.js` file. All design tokens live directly in
+> `src/index.css` via the `@theme` directive, so this section is the single source of
+> truth for token names — use these names, not new ones.
+
+### Setup instructions
+
+1. Install dependencies: `npm install`
+2. Run dev server: `npm run dev`
+
+### Design language (utility / status-first)
+
+This is a dense work tool, not a website. Flat surfaces, one accent colour, no shadows.
+
+- **Status colours** (core rule: never colour alone — every status also carries an icon/dot
+  and a text label, see [Entry statuses](#entry-statuses)):
+  - `draft` (grey): `bg-status-draft-bg` / `text-status-draft-fg`
+  - `submitted` (blue): `bg-status-submitted-bg` / `text-status-submitted-fg`
+  - `approved` (green): `bg-status-approved-bg` / `text-status-approved-fg`
+  - `needs_revision` (amber, **not red** — it's a request, not an error): `bg-status-revision-bg` / `text-status-revision-fg`
+- **Typography:**
+  - **Scale:** limited to `text-xs` (12px), `text-sm` (13px), `text-base` (15px), `text-lg` (18px), `text-xl` (24px).
+  - **Weights:** use only `font-regular` (400) or `font-medium` (500).
+  - **Numbers:** times and hour counts must use `font-mono` so digits align in columns.
+- **Radii & borders:**
+  - Controls (buttons/inputs): `rounded-control` (8px).
+  - Cards: `rounded-card` (12px).
+  - Borders are always 1px (`border` with the `border-border` colour).
+  - **No shadows allowed.**
 
 ---
 
@@ -135,8 +188,7 @@ projekt-stazowy-2026/
     └── package.json
 ```
 
-> 🔧 **TODO (day 6, tasks T-07 and T-08):** create the `backend/` and `frontend/` directories
-> during project setup.
+> 🔧 **TODO (day 6):** create the `backend/` and `frontend/` directories during project setup.
 
 ---
 
@@ -154,6 +206,29 @@ the backend rejects everything else with `409 Conflict`.
 | `approved` | — | — | final state |
 
 Returning an entry **without a comment** is not allowed.
+
+Every status is rendered with a shared status badge component: a dot/icon **and** a text
+label together, never colour alone, meeting WCAG AA contrast and staying readable in a
+black-and-white printout.
+
+---
+
+## Identity and roles
+
+**Decision: soft roles, no passwords.**
+
+- A selector lets the user pick a current identity: one of the fictional students, or the
+  supervisor. There is no login step — the identity is kept in application state only.
+- With a student identity active, the backend enforces the scope server-side, so a student
+  can only see and edit their own entries. A student identity cannot open the supervisor
+  queue; the supervisor identity can.
+- **Known limitation:** this is *soft* authorisation — there are no passwords, sessions or
+  hashing, so it is not a barrier against a determined user calling the API directly. It is
+  acceptable here because the data is fictional and the app never replaces the official ZDZ
+  journal.
+- Real password authentication (hashing, sessions) is explicitly **out of MVP**. It stays a
+  candidate only behind a formal change request stating its cost and what it displaces — see
+  [MVP scope](#mvp-scope).
 
 ---
 
@@ -173,8 +248,18 @@ length, because MySQL requires one and SQLite does not.
 The connection string is a **secret**. It lives in environment variables on the host and never
 in this repository. `.env` is in `.gitignore`.
 
-> The migration is task T-51, run by Kacper on day 18, and doubles as the database knowledge
-> transfer workshop for the rest of the team.
+**Decision: SQLite locally, with an early MySQL portability check.** Daily development and
+the pytest suite stay on SQLite for all three developers; nothing about day-to-day work
+changes.
+
+- **Day 16:** free-tier limits (storage, inactivity policy) on Render and Aiven are checked
+  first, moved earlier so there are no surprises later.
+- **Day 16:** the Aiven MySQL instance is provisioned early and the app plus a slice of the
+  pytest suite run against it once, purely to confirm the models are portable. This instance
+  is reused for the later migration.
+- **Day 18:** the same instance is switched over for the production deployment, type
+  differences (dates, Boolean, autoincrement) are re-checked, and Kacper runs the MySQL
+  workshop for the rest of the team — this stays the database knowledge-transfer step.
 
 ---
 
@@ -195,33 +280,32 @@ field** (`student.daily_hours_limit`, default `8`) rather than something derived
 
 The minimum that must work on **Demo Day (04.08)**:
 
-- [ ] Authentication and roles (Student / Admin login panel)
-- [ ] User profiles (basic info: name, role, daily hours limit)
+- [ ] Identity and role selector — soft roles, no passwords: pick a fictional student or the
+      supervisor; the backend enforces that a student sees only their own entries
 - [ ] Entry CRUD: date, start and end time, work description, blockers
 - [ ] Worked hours computed automatically from the time range
 - [ ] Status state machine (see table above)
 - [ ] Return an entry with a mandatory comment (supervisor view)
-- [ ] Data privacy: students can only see and edit their own entries
+- [ ] Data privacy: students can only see and edit their own entries (enforced server-side)
 - [ ] Student view (own journal) and supervisor view (approval queue for all students)
-- [ ] Filtering entries by date and status
 - [ ] Daily, weekly and overlap validation
 - [ ] Permanent "DEMO — test data" banner in the UI
 
 ### Optional features (only with spare capacity, in this order)
 
-1. Weekly statistics (total hours, entry count, % approved)
-2. Weekly progress bar with a remaining-capacity notice
-3. CSV export / print view
-4. In-app notifications for returned entries
+1. Weekly statistics — backend and frontend (total hours, entry count, % approved)
+2. Remaining-capacity notice — **build at most one**: a weekly progress bar *or* a lighter
+   daily hours counter
+3. Filtering entries by date and status
+4. CSV export / print view
 5. Docker containerisation of the backend
 
-### Optional features (only with spare capacity, in this order)
+### Out of MVP — requires a change request
 
-1. Weekly statistics (total hours, entry count, % approved)
-2. CSV export / print view
-3. Filtering by date and status
-4. Docker
-5. Authentication and roles
+- **Real password authentication:** login, sessions, password hashing. The soft-role
+  selector above already covers the MVP's privacy needs; this is the security-grade version
+  and lands only behind an explicit change request stating its cost in hours and the stories
+  it displaces.
 
 ---
 
@@ -240,7 +324,7 @@ The short version:
 
 ## Licence
 
-> 🔧 **TODO (day 18, task T-39):** choosing the project licence is an internship task
+> 🔧 **TODO (day 18):** choosing the project licence is an internship task
 > (learning area 15: copyright and software licensing).
 > Until then this repository has no licence assigned.
 
