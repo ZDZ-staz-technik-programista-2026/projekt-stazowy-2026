@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+
+@import "tailwindcss";
+
+@theme {
+  /* STATUS COLORS */
+  --color-status-draft-bg: #F1EFE8; /* draft grey */
+  --color-status-draft-fg: #444441;
+  
+  --color-status-submitted-bg: #E6F1FB; /* submitted blue */
+  --color-status-submitted-fg: #0C447C;
+  
+  --color-status-approved-bg: #EAF3DE; /* approved green */
+  --color-status-approved-fg: #27500A;
+  
+  --color-status-revision-bg: #FAEEDA; /* needs_revision amber */
+  --color-status-revision-fg: #633806;
+
+  /* PRIMARY COLORS */
+  --color-accent: #185FA5;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #5A5A5A;
+  --color-text-muted: #8A8A85;
+  --color-border: #E5E7EB;
+  --color-border-strong: #D3D1C7;
+  --color-surface-page: #F9FAFB;
+  --color-surface-card: #FFFFFF;
+
+  /* TYPOGRAPHY */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  /* Font Families */
+  --font-mono: ui-monospace, monospace;
+
+  /* BORDER RADIUS */
+  --radius-control: 8px;
+  --radius-card: 12px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface-page);
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
+    font-family: system-ui, sans-serif;
+  }
+
+  /* SHADOWS REMOVAL */
+  * {
+    box-shadow: none !important;
+  }
+}
