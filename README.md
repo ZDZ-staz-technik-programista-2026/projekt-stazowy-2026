@@ -105,11 +105,22 @@ instead of:
 ```
 #### Start FastAPI server:
 ```bash
-fastapi dev
+uvicorn app.main:app --reload
 ```
 Backend will be available at: http://127.0.0.1:8000/
 
-To deactivate the virtual environment:
+##### Health check endpoint:
+GET http://127.0.0.1:8000/health
+
+Expected response:
+{
+  "status": "ok"
+}
+
+#### Auto-generated API documentation:
+http://127.0.0.1:8000/docs
+
+#### To deactivate the virtual environment:
 ```bash
 deactivate
 ```
@@ -188,7 +199,6 @@ projekt-stazowy-2026/
     └── package.json
 ```
 
-> 🔧 **TODO (day 6):** create the `backend/` and `frontend/` directories during project setup.
 
 ---
 
