@@ -135,6 +135,12 @@ Navigate to the frontend directory:
 cd frontend
 ```
 
+Copy the example environment file and adjust it if needed (this sets `VITE_API_URL`,
+the backend URL the frontend fetches from):
+```bash
+cp .env.example .env
+```
+
 Install dependencies:
 ```bash
 npm install
