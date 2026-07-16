@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
 
-@import "tailwindcss";
-
 @theme {
   /* STATUS COLORS */
   --color-status-draft-bg: #F1EFE8; /* draft grey */
@@ -54,8 +52,4 @@
     font-family: system-ui, sans-serif;
   }
 
-  /* SHADOWS REMOVAL */
-  * {
-    box-shadow: none !important;
-  }
 }
