@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session, joinedload
 from fastapi.responses import JSONResponse
 
@@ -8,8 +8,6 @@ from app.services.time_calculations import (
     calculate_hours,
     InvalidTimeRangeError
 )
-
-
 router = APIRouter(prefix="/api")
 
 
@@ -39,26 +37,13 @@ def format_review(review):
 
 
 def calculate_entry_hours(entry):
-    try:
-        return calculate_hours(
-            entry.start_time,
-            entry.end_time
-        )
-
-    except InvalidTimeRangeError:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": 400,
-                "error": "BAD_REQUEST",
-                "message": "Validation failed: 'end_time' cannot occur before or equal to 'start_time'.",
-                "code": "INVALID_TIME_RANGE",
-                "details": {
-                    "start_time": str(entry.start_time),
-                    "end_time": str(entry.end_time)
-                }
-            }
-        )
+    if entry.start_time is None or entry.end_time is None:
+        raise InvalidTimeRangeError()
+        
+    return calculate_hours(
+        entry.start_time,
+        entry.end_time
+    )
 
 
 def get_latest_review(entry):
@@ -72,18 +57,15 @@ def get_latest_review(entry):
 
 
 def format_entry(entry):
-    hours_or_response = calculate_entry_hours(entry)
+    hours = calculate_entry_hours(entry)
     
-    if isinstance(hours_or_response, JSONResponse):
-        return hours_or_response
-
     return {
         "id": entry.id,
         "user_id": entry.user_id,
         "date": entry.date,
         "start_time": entry.start_time,
         "end_time": entry.end_time,
-        "calculated_hours": hours_or_response,
+        "calculated_hours": hours,
         "description": entry.description,
         "blockers": entry.blockers,
         "status": entry.status,
@@ -122,10 +104,35 @@ def get_entries(
 
     entries = query.all()
 
-    return [
-        format_entry(entry)
-        for entry in entries
-    ]
+    try:
+        return [
+            format_entry(entry)
+            for entry in entries
+        ]
+    except InvalidTimeRangeError:
+        start_val = "..."
+        end_val = "..."
+        
+        for el in entries:
+            if el.start_time is None or el.end_time is None or el.end_time <= el.start_time:
+                start_val = str(el.start_time) if el.start_time is not None else "..."
+                end_val = str(el.end_time) if el.end_time is not None else "..."
+                break
+
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": 400,
+                "error": "BAD_REQUEST",
+                "message": "Validation failed: 'end_time' cannot occur before or equal to 'start_time'.",
+                "code": "INVALID_TIME_RANGE",
+                "details": {
+                    "start_time": start_val,
+                    "end_time": end_val
+                }
+            }
+        )
+
 
 @router.get("/entries/{id}")
 def get_entry(
@@ -134,9 +141,7 @@ def get_entry(
 ):
     entry = (
         entries_query(db)
-        .filter(
-            Entry.id == id
-        )
+        .filter(Entry.id == id)
         .first()
     )
 
@@ -154,4 +159,19 @@ def get_entry(
             }
         )
 
-    return format_entry(entry)
+    try:
+        return format_entry(entry)
+    except InvalidTimeRangeError:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": 400,
+                "error": "BAD_REQUEST",
+                "message": "Validation failed: 'end_time' cannot occur before or equal to 'start_time'.",
+                "code": "INVALID_TIME_RANGE",
+                "details": {
+                    "start_time": str(entry.start_time) if entry.start_time is not None else "...",
+                    "end_time": str(entry.end_time) if entry.end_time is not None else "..."
+                }
+            }
+        )
