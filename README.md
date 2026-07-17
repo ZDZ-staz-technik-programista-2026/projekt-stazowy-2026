@@ -107,10 +107,10 @@ instead of:
 ```bash
 uvicorn app.main:app --reload
 ```
-Backend will be available at: http://127.0.0.1:8000/
+Backend will be available at: http://localhost:8000/
 
 ##### Health check endpoint:
-GET http://127.0.0.1:8000/health
+GET http://localhost:8000/health
 
 Expected response:
 {
@@ -118,7 +118,7 @@ Expected response:
 }
 
 #### Auto-generated API documentation:
-http://127.0.0.1:8000/docs
+http://localhost:8000/docs
 
 #### To deactivate the virtual environment:
 ```bash
@@ -151,7 +151,7 @@ Start the Vite dev server:
 npm run dev
 ```
 
-Frontend will be available at: http://127.0.0.1:5173/ (Vite's default dev server port)
+Frontend will be available at: http://localhost:5173/ (Vite's default dev server port)
 
 Once the backend is running, the auto-generated API documentation is available at `/docs`.
 
