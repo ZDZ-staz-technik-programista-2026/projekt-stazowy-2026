@@ -1,3 +1,4 @@
+# Moved routes.py into routes folder and renamed it to basicAPI.py
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
@@ -70,4 +71,3 @@ def get_user(id: int, db: Session = Depends(get_db)):
         "daily_hours_limit": user.daily_hours_limit,
         "role": user.role.name
     }
-    
