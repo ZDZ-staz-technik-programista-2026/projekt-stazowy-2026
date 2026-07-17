@@ -38,7 +38,6 @@ def format_review(review):
 
 
 def calculate_entry_hours(entry):
-    # Dokładne sprawdzenie wyłącznie pod kątem braku wartości (None)
     if entry.start_time is None or entry.end_time is None:
         raise InvalidTimeRangeError()
         
@@ -115,7 +114,6 @@ def get_entries(
         start_val = "..."
         end_val = "..."
         
-        # Bezpieczne wyciąganie godzin bez zakłócania wartości typu 00:00:00
         for el in entries:
             if el.start_time is None or el.end_time is None or el.end_time <= el.start_time:
                 start_val = str(el.start_time) if el.start_time is not None else "..."
