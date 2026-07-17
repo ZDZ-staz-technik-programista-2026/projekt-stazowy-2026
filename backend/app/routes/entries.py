@@ -83,7 +83,7 @@ def format_entry(entry):
         "date": entry.date,
         "start_time": entry.start_time,
         "end_time": entry.end_time,
-        "calculated_hours": hours_or_response, # Tutaj trafi poprawna liczba godzin
+        "calculated_hours": hours_or_response,
         "description": entry.description,
         "blockers": entry.blockers,
         "status": entry.status,
