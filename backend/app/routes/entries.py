@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
+from fastapi.responses import JSONResponse
 
 from app.database import SessionLocal
 from app.models import Entry, Review, User
@@ -45,9 +46,9 @@ def calculate_entry_hours(entry):
         )
 
     except InvalidTimeRangeError:
-        raise HTTPException(
+        return JSONResponse(
             status_code=400,
-            detail={
+            content={
                 "status": 400,
                 "error": "BAD_REQUEST",
                 "message": "Validation failed: 'end_time' cannot occur before or equal to 'start_time'.",
@@ -71,13 +72,18 @@ def get_latest_review(entry):
 
 
 def format_entry(entry):
+    hours_or_response = calculate_entry_hours(entry)
+    
+    if isinstance(hours_or_response, JSONResponse):
+        return hours_or_response
+
     return {
         "id": entry.id,
         "user_id": entry.user_id,
         "date": entry.date,
         "start_time": entry.start_time,
         "end_time": entry.end_time,
-        "calculated_hours": calculate_entry_hours(entry),
+        "calculated_hours": hours_or_response,
         "description": entry.description,
         "blockers": entry.blockers,
         "status": entry.status,
@@ -121,7 +127,6 @@ def get_entries(
         for entry in entries
     ]
 
-
 @router.get("/entries/{id}")
 def get_entry(
     id: int,
@@ -136,15 +141,12 @@ def get_entry(
     )
 
     if entry is None:
-        raise HTTPException(
+        return JSONResponse(
             status_code=404,
-            detail={
+            content={
                 "status": 404,
                 "error": "NOT_FOUND",
-                "message": (
-                    f"Target time entry resource record with ID {id} "
-                    "was not found."
-                ),
+                "message": f"Target time entry resource record with ID {id} was not found.",
                 "code": "ENTRY_NOT_FOUND",
                 "details": {
                     "entry_id": id
