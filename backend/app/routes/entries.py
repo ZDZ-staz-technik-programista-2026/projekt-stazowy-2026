@@ -8,7 +8,6 @@ from app.services.time_calculations import (
     calculate_hours,
     InvalidTimeRangeError
 )
-
 router = APIRouter(prefix="/api")
 
 
