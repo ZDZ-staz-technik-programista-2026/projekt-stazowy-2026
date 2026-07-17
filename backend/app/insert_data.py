@@ -1,7 +1,5 @@
-from datetime import date, time
-
 from app.database import SessionLocal
-from app.models import Role, User, Entry, Review
+from app.models import Role, User
 
 
 def insert_data():
@@ -25,6 +23,11 @@ def insert_data():
             user.name for user in existing_users
         }
 
+        if len(existing_user_names) == len(required_users):
+            print("Test data already exists. Nothing to insert.")
+            return
+
+
         # Roles
         student_role = (
             db.query(Role)
@@ -36,6 +39,7 @@ def insert_data():
             student_role = Role(name="Student")
             db.add(student_role)
 
+
         supervisor_role = (
             db.query(Role)
             .filter_by(name="Supervisor")
@@ -46,13 +50,14 @@ def insert_data():
             supervisor_role = Role(name="Supervisor")
             db.add(supervisor_role)
 
+
         db.commit()
 
         db.refresh(student_role)
         db.refresh(supervisor_role)
 
 
-        # Users
+        # Students
         students = [
             "Test Student 1",
             "Test Student 2",
@@ -76,6 +81,7 @@ def insert_data():
                 )
 
 
+        # Supervisor
         supervisor_name = "Test Supervisor"
 
         exists = (
@@ -95,6 +101,8 @@ def insert_data():
 
 
         db.commit()
+
+        print("Test data inserted.")
 
     finally:
         db.close()
