@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from app.database import Base, engine
 from app.models import *
 
@@ -14,6 +15,37 @@ insert_data()
 
 
 app = FastAPI()
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    
+    invalid_fields = []
+    for err in errors:
+        # err["loc"] to zazwyczaj np. ("body", "description")
+        field_name = err["loc"][-1] if err["loc"] else "unknown"
+        invalid_fields.append(str(field_name))
+
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,  # Zmieniamy domyślne 422 na wymagane 400
+        content={
+            "status": 400,
+            "error": "BAD_REQUEST",
+            "message": "Validation failed: One or more required fields are missing or invalid.",
+            "code": "MISSING_REQUIRED_FIELDS",
+            "details": {
+                "invalid_fields": invalid_fields,
+                "errors": [
+                    {
+                        "field": err["loc"][-1] if err["loc"] else "unknown",
+                        "msg": err["msg"],
+                        "type": err["type"]
+                    }
+                    for err in errors
+                ]
+            }
+        }
+    )
 
 app.include_router(basic_api_router)
 app.include_router(entries_router)

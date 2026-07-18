@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session, joinedload
+from datetime import date, time
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import SessionLocal
 from app.models import Entry, Review, User
@@ -8,7 +10,26 @@ from app.services.time_calculations import (
     calculate_hours,
     InvalidTimeRangeError
 )
+from app.services.post_patch_validation import (
+    validate_time_range,
+    validate_future_date,
+    validate_description,
+    check_schedule_overlap,
+    check_hours_limit,
+)
+
 router = APIRouter(prefix="/api")
+
+
+
+class EntryCreateRequest(BaseModel):
+    user_id: int
+    date: date
+    start_time: time
+    end_time: time
+    description: str
+    blockers: str | None = "None"
+
 
 
 def get_db():
@@ -17,6 +38,20 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def entries_query(db: Session):
+    return (
+        db.query(Entry)
+        .options(
+            joinedload(Entry.user)
+            .joinedload(User.role),
+            
+            joinedload(Entry.reviews)
+            .joinedload(Review.created_by_user)
+            .joinedload(User.role)
+        )
+    )
 
 
 def format_review(review):
@@ -76,19 +111,6 @@ def format_entry(entry):
     }
 
 
-def entries_query(db: Session):
-    return (
-        db.query(Entry)
-        .options(
-            joinedload(Entry.user)
-            .joinedload(User.role),
-
-            joinedload(Entry.reviews)
-            .joinedload(Review.created_by_user)
-            .joinedload(User.role)
-        )
-    )
-
 
 @router.get("/entries")
 def get_entries(
@@ -98,9 +120,7 @@ def get_entries(
     query = entries_query(db)
 
     if user_id is not None:
-        query = query.filter(
-            Entry.user_id == user_id
-        )
+        query = query.filter(Entry.user_id == user_id)
 
     entries = query.all()
 
@@ -175,3 +195,64 @@ def get_entry(
                 }
             }
         )
+
+
+@router.post("/entries", status_code=status.HTTP_201_CREATED)
+def create_entry(
+    request: EntryCreateRequest,
+    db: Session = Depends(get_db)
+):
+    hours_or_error = validate_time_range(request.start_time, request.end_time)
+    if isinstance(hours_or_error, JSONResponse):
+        return hours_or_error
+    
+    calculated_hours = hours_or_error
+
+    future_date_error = validate_future_date(request.date)
+    if isinstance(future_date_error, JSONResponse):
+        return future_date_error
+
+    description_error = validate_description(request.description)
+    if isinstance(description_error, JSONResponse):
+        return description_error
+
+    overlap_error = check_schedule_overlap(
+        db=db,
+        user_id=request.user_id,
+        entry_date=request.date,
+        start_time=request.start_time,
+        end_time=request.end_time
+    )
+    if isinstance(overlap_error, JSONResponse):
+        return overlap_error
+
+    limit_error = check_hours_limit(
+        db=db,
+        user_id=request.user_id,
+        entry_date=request.date,
+        requested_hours=calculated_hours
+    )
+    if isinstance(limit_error, JSONResponse):
+        return limit_error
+
+    entry = Entry(
+        user_id=request.user_id,
+        date=request.date,
+        start_time=request.start_time,
+        end_time=request.end_time,
+        description=request.description,
+        blockers=request.blockers,
+        status="draft"
+    )
+
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+
+    full_entry = (
+        entries_query(db)
+        .filter(Entry.id == entry.id)
+        .first()
+    )
+
+    return format_entry(full_entry)
