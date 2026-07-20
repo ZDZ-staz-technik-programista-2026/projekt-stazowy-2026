@@ -32,9 +32,8 @@ function App() {
     <>
       <Banner></Banner>
       <Header headerText="Internship Journal" onUserChange={setUserId}></Header>
-      <EntriesForm userId={userId}></EntriesForm>
-      {console.log(userId)}
       <EntriesList userId={userId}></EntriesList>
+      <EntriesForm userId={userId}></EntriesForm>
       <div>
         <StatusBadge status="draft"/>
         <StatusBadge status="submitted" />
