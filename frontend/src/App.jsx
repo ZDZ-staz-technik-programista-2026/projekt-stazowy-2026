@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import Banner from './Banner'
 import StatusBadge from './StatusBadge'
+import Header from './Header';
+import EntriesList from './EntriesList';
 
 const API_URL = import.meta.env.VITE_API_URL;
 if (!API_URL) {
@@ -24,12 +26,14 @@ function App() {
       })
         
   }, [])
-
+  const [userId, setUserId] = useState(1)
   return (
     <>
       <Banner></Banner>
+      <Header headerText="Internship Journal" onUserChange={setUserId}></Header>
+      {console.log(userId)}
+      <EntriesList userId={userId}></EntriesList>
       <div>
-        <h1>Internship Journal</h1>
         <StatusBadge status="draft" />
         <StatusBadge status="submitted" />
         <StatusBadge status="needs_revision" />
