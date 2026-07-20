@@ -4,6 +4,7 @@ import Banner from './Banner'
 import StatusBadge from './StatusBadge'
 import Header from './Header';
 import EntriesList from './EntriesList';
+import EntriesForm from './EntriesForm';
 
 const API_URL = import.meta.env.VITE_API_URL;
 if (!API_URL) {
@@ -31,10 +32,11 @@ function App() {
     <>
       <Banner></Banner>
       <Header headerText="Internship Journal" onUserChange={setUserId}></Header>
+      <EntriesForm userId={userId}></EntriesForm>
       {console.log(userId)}
       <EntriesList userId={userId}></EntriesList>
       <div>
-        <StatusBadge status="draft" />
+        <StatusBadge status="draft"/>
         <StatusBadge status="submitted" />
         <StatusBadge status="needs_revision" />
         <StatusBadge status="approved" />
