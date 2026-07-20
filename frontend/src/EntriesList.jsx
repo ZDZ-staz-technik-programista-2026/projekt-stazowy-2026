@@ -18,7 +18,7 @@ export default function EntriesList({userId}){
                 setStatus("unreachable")
             })
     }, [userId])
-
+    
     return(
         <div>
             {status == "loading" && <option>⏳ Loading entries...</option>}
