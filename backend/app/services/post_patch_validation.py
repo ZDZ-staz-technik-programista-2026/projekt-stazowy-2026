@@ -127,8 +127,6 @@ def check_hours_limit(
                 }
             }
         )
-
-    # Poprawka limitu dziennego: Pobieramy już zarejestrowane godziny z tego dnia
     existing_daily_entries = (
         db.query(Entry)
         .filter(
@@ -159,7 +157,6 @@ def check_hours_limit(
             }
         )
 
-    # Limit tygodniowy
     monday = entry_date - timedelta(days=entry_date.weekday())
     sunday = monday + timedelta(days=6)
 
@@ -193,4 +190,28 @@ def check_hours_limit(
                 }
             }
         )
+    return None
+
+
+ALLOWED_EDIT_STATUSES = {"draft", "needs_revision"}
+
+
+def validate_entry_status_for_patch(current_status: str):
+    if current_status not in ALLOWED_EDIT_STATUSES:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "status": 409,
+                "error": "CONFLICT",
+                "message": (
+                    "The transaction cannot proceed because the entry is "
+                    f"permanently locked within an immutable state tracking state ({current_status})."
+                ),
+                "code": "WORKFLOW_STATE_LOCKED",
+                "details": {
+                    "current_status": current_status
+                }
+            }
+        )
+
     return None

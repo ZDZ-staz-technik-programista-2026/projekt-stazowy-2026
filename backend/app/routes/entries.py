@@ -1,4 +1,6 @@
-from datetime import date, time
+import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
@@ -6,31 +8,56 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import SessionLocal
 from app.models import Entry, Review, User
+
 from app.services.time_calculations import (
     calculate_hours,
     InvalidTimeRangeError
 )
+
 from app.services.post_patch_validation import (
     validate_time_range,
     validate_future_date,
     validate_description,
     check_schedule_overlap,
     check_hours_limit,
+    validate_entry_status_for_patch,
 )
+
 
 router = APIRouter(prefix="/api")
 
 
+# ==========================
+# Pydantic Models
+# ==========================
 
 class EntryCreateRequest(BaseModel):
     user_id: int
-    date: date
-    start_time: time
-    end_time: time
+
+    date: datetime.date
+
+    start_time: datetime.time
+    end_time: datetime.time
+
     description: str
-    blockers: str | None = "None"
+
+    blockers: Optional[str] = "None"
 
 
+class EntryPatchRequest(BaseModel):
+    date: Optional[datetime.date] = None
+
+    start_time: Optional[datetime.time] = None
+    end_time: Optional[datetime.time] = None
+
+    description: Optional[str] = None
+
+    blockers: Optional[str] = None
+
+
+# ==========================
+# Database dependency
+# ==========================
 
 def get_db():
     db = SessionLocal()
@@ -40,13 +67,17 @@ def get_db():
         db.close()
 
 
+# ==========================
+# Queries
+# ==========================
+
 def entries_query(db: Session):
     return (
         db.query(Entry)
         .options(
             joinedload(Entry.user)
             .joinedload(User.role),
-            
+
             joinedload(Entry.reviews)
             .joinedload(Review.created_by_user)
             .joinedload(User.role)
@@ -256,3 +287,136 @@ def create_entry(
     )
 
     return format_entry(full_entry)
+
+
+@router.patch("/entries/{id}")
+def patch_entry(
+    id: int,
+    request: EntryPatchRequest,
+    db: Session = Depends(get_db),
+):
+    entry = (
+        entries_query(db)
+        .filter(Entry.id == id)
+        .first()
+    )
+
+    if entry is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target time entry resource record with ID {id} was not found.",
+                "code": "ENTRY_NOT_FOUND",
+                "details": {
+                    "entry_id": id
+                }
+            }
+        )
+
+    status_error = validate_entry_status_for_patch(entry.status)
+
+    if isinstance(status_error, JSONResponse):
+        return status_error
+    
+    new_date = (
+        request.date
+        if request.date is not None
+        else entry.date
+    )
+
+    new_start = (
+        request.start_time
+        if request.start_time is not None
+        else entry.start_time
+    )
+
+    new_end = (
+        request.end_time
+        if request.end_time is not None
+        else entry.end_time
+    )
+
+    new_description = (
+        request.description
+        if request.description is not None
+        else entry.description
+    )
+
+    hours_or_error = validate_time_range(
+        new_start,
+        new_end
+    )
+
+    if isinstance(hours_or_error, JSONResponse):
+        return hours_or_error
+
+    future_error = validate_future_date(new_date)
+    if isinstance(future_error, JSONResponse):
+        return future_error
+
+    description_error = validate_description(new_description)
+    if isinstance(description_error, JSONResponse):
+        return description_error
+
+    existing_entries = (
+        db.query(Entry)
+        .filter(
+            Entry.user_id == entry.user_id,
+            Entry.date == new_date,
+            Entry.id != entry.id
+        )
+        .all()
+    )
+
+    for existing in existing_entries:
+        if (
+            new_start < existing.end_time
+            and new_end > existing.start_time
+        ):
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "status": 409,
+                    "error": "CONFLICT",
+                    "message": (
+                        f"Time entry allocation overlaps with an existing "
+                        f"registered block (ID: {existing.id})."
+                    ),
+                    "code": "SCHEDULE_OVERLAP",
+                    "details": {
+                        "conflicting_entry_id": existing.id,
+                        "conflicting_range": (
+                            f"{existing.start_time.strftime('%H:%M')}-"
+                            f"{existing.end_time.strftime('%H:%M')}"
+                        )
+                    }
+                }
+            )
+
+    if request.date is not None:
+        entry.date = request.date
+
+    if request.start_time is not None:
+        entry.start_time = request.start_time
+
+    if request.end_time is not None:
+        entry.end_time = request.end_time
+
+    if request.description is not None:
+        entry.description = request.description
+
+    if request.blockers is not None:
+        entry.blockers = request.blockers
+
+    db.commit()
+    db.refresh(entry)
+
+    updated_entry = (
+        entries_query(db)
+        .filter(Entry.id == entry.id)
+        .first()
+    )
+
+    return format_entry(updated_entry)
