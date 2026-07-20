@@ -22,12 +22,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     
     invalid_fields = []
     for err in errors:
-        # err["loc"] to zazwyczaj np. ("body", "description")
         field_name = err["loc"][-1] if err["loc"] else "unknown"
         invalid_fields.append(str(field_name))
 
     return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,  # Zmieniamy domyślne 422 na wymagane 400
+        status_code=status.HTTP_400_BAD_REQUEST,  
         content={
             "status": 400,
             "error": "BAD_REQUEST",
