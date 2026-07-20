@@ -27,37 +27,22 @@ from app.services.post_patch_validation import (
 router = APIRouter(prefix="/api")
 
 
-# ==========================
-# Pydantic Models
-# ==========================
-
 class EntryCreateRequest(BaseModel):
     user_id: int
-
     date: datetime.date
-
     start_time: datetime.time
     end_time: datetime.time
-
     description: str
-
     blockers: Optional[str] = "None"
 
 
 class EntryPatchRequest(BaseModel):
     date: Optional[datetime.date] = None
-
     start_time: Optional[datetime.time] = None
     end_time: Optional[datetime.time] = None
-
     description: Optional[str] = None
-
     blockers: Optional[str] = None
 
-
-# ==========================
-# Database dependency
-# ==========================
 
 def get_db():
     db = SessionLocal()
@@ -66,10 +51,6 @@ def get_db():
     finally:
         db.close()
 
-
-# ==========================
-# Queries
-# ==========================
 
 def entries_query(db: Session):
     return (
