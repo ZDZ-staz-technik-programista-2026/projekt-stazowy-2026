@@ -3,10 +3,10 @@ class InvalidStatusTransitionError(ValueError):
 
 # (current_status, new_status) -> set of roles allowed to perform it
 ALLOWED_TRANSITIONS: dict[tuple[str, str], set[str]] = {
-    ("draft", "submitted"): {"Student"},
-    ("submitted", "approved"): {"Supervisor"},
-    ("submitted", "needs_revision"): {"Supervisor"},
-    ("needs_revision", "submitted"): {"Student"},
+    ("draft", "submitted"): {"student"},
+    ("submitted", "approved"): {"supervisor"},
+    ("submitted", "needs_revision"): {"supervisor"},
+    ("needs_revision", "submitted"): {"student"},
 }
 
 def validate_transition(current_status: str, new_status: str, role:str) -> None:
@@ -17,15 +17,14 @@ def validate_transition(current_status: str, new_status: str, role:str) -> None:
         InvalidStatusTransitionError: if the transition is not defined,
             or the role is not permitted to perform it.
     """
-    allowed_roles = ALLOWED_TRANSITIONS.get((current_status, new_status))
+    allowed_roles = ALLOWED_TRANSITIONS.get((current_status.lower(), new_status.lower()))
 
     if allowed_roles is None:
         raise InvalidStatusTransitionError(
             f"Transition from '{current_status}' to '{new_status}' is not allowed."
         )
 
-    if role not in allowed_roles:
+    if role.lower() not in allowed_roles:
         raise InvalidStatusTransitionError(
-            f"Role '{role}' is not allowed to transition "
-            f"from '{current_status}' to '{new_status}'."
+            f"Role '{role}' is not allowed to transition from '{current_status}' to '{new_status}'."
         )
