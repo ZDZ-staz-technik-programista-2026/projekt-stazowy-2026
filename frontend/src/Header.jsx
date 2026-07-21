@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 
 const API_URL = import.meta.env.VITE_API_URL;
-export default function Header({ headerText, onUserChange }) {
+export default function Header({ headerText, onUserChange, onUserChangeRole }) {
 
   const [users,setUsers] = useState([])
   const [status, setStatus] = useState("loading")
@@ -13,6 +13,7 @@ export default function Header({ headerText, onUserChange }) {
             setUsers(data)
             if(data.length > 0 && onUserChange){
                 onUserChange(data[0].id)
+                onUserChangeRole(data[0].role)
             }
         })
         .catch(error => {
@@ -28,7 +29,13 @@ export default function Header({ headerText, onUserChange }) {
           className="col-start-3 justify-self-end text-base text-accent border text-text-primary border-border-strong rounded-control px-3 py-1.5 bg-transparent cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           disabled={status != "loaded"}
           value={users.id}
-          onChange={(e) => onUserChange(e.target.value)}
+          onChange={(e) => {
+            onUserChange(e.target.value)
+            const selectedUser = users.find(user => user.id == Number(e.target.value))
+            if(selectedUser){
+              onUserChangeRole(selectedUser.role)
+            }
+          }}
         >
           {status == "loading" && <option>⏳ Loading...</option>}
           {status == "unreachable" && <option>❌ Connection error</option>}
