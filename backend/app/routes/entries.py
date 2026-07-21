@@ -23,6 +23,8 @@ from app.services.post_patch_validation import (
     validate_entry_status_for_patch,
 )
 
+from app.services import validate_transition, InvalidStatusTransitionError
+
 
 router = APIRouter(prefix="/api")
 
@@ -497,6 +499,89 @@ def patch_entry(
     if request.blockers is not None:
         entry.blockers = request.blockers
 
+    db.commit()
+    db.refresh(entry)
+
+    updated_entry = (
+        entries_query(db)
+        .filter(Entry.id == entry.id)
+        .first()
+    )
+
+    return format_entry(updated_entry)
+
+
+@router.post("/entries/{id}/submit")
+def submit_entry(
+    id: int,
+    user_id: int = Query(...),
+    db: Session = Depends(get_db),
+):
+    user = (
+        db.query(User)
+        .options(joinedload(User.role))
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if user is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": "User not found.",
+                "code": "USER_NOT_FOUND",
+                "details": {"user_id": user_id},
+            },
+        )
+    
+    entry = (
+        entries_query(db)
+        .filter(Entry.id == id)
+        .first()
+    )
+
+
+    if entry is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target time entry resource record with ID {id} was not found.",
+                "code": "ENTRY_NOT_FOUND",
+                "details": {"entry_id": id},
+            },
+        )
+    
+    if entry.user_id != user.id:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": 403,
+                "error": "FORBIDDEN",
+                "message": "You do not have permission to modify this entry.",
+                "code": "INSUFFICIENT_PERMISSIONS",
+                "details": {"user_id": user.id, "entry_id": entry.id},
+            },
+    )
+    
+    try:
+        validate_transition(entry.status, "Submitted", user.role.name)
+    except InvalidStatusTransitionError:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "status": 409,
+                "error": "CONFLICT",
+                "message": f"The transition cannot proceed because the entry is locked by status state machine ({entry.status})",
+                "code": "WORKFLOW_STATE_LOCKED",
+                "details":{"current_status": entry.status},
+            },
+        )
+    
+    entry.status = "submitted"
     db.commit()
     db.refresh(entry)
 
