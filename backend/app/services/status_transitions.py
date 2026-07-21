@@ -3,10 +3,10 @@ class InvalidStatusTransitionError(ValueError):
 
 # (current_status, new_status) -> set of roles allowed to perform it
 ALLOWED_TRANSITIONS: dict[tuple[str, str], set[str]] = {
-    ("draft", "submitted"): {"student"},
-    ("submitted", "approved"): {"supervisor"},
-    ("submitted", "needs_revision"): {"supervisor"},
-    ("needs_revision", "submitted"): {"student"},
+    ("draft", "submitted"): {"Student"},
+    ("submitted", "approved"): {"Supervisor"},
+    ("submitted", "needs_revision"): {"Supervisor"},
+    ("needs_revision", "submitted"): {"Student"},
 }
 
 def validate_transition(current_status: str, new_status: str, role:str) -> None:

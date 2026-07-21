@@ -568,7 +568,7 @@ def submit_entry(
     )
     
     try:
-        validate_transition(entry.status, "Submitted", user.role.name)
+        validate_transition(entry.status, "submitted", user.role.name)
     except InvalidStatusTransitionError:
         return JSONResponse(
             status_code=409,
