@@ -567,19 +567,7 @@ def submit_entry(
             },
     )
     
-    try:
-        validate_transition(entry.status, "submitted", user.role.name)
-    except InvalidStatusTransitionError:
-        return JSONResponse(
-            status_code=409,
-            content={
-                "status": 409,
-                "error": "CONFLICT",
-                "message": f"The transition cannot proceed because the entry is locked by status state machine ({entry.status})",
-                "code": "WORKFLOW_STATE_LOCKED",
-                "details":{"current_status": entry.status},
-            },
-        )
+    validate_transition(entry.status, "submitted", user.role.name) # Calling this function might generate exception (InvalidStatusTransitionError) that is managed by exception handler in main.py
     
     entry.status = "submitted"
     db.commit()

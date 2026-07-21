@@ -1,6 +1,7 @@
 from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
+from app.services import InvalidStatusTransitionError
 from fastapi.responses import JSONResponse
 from app.database import Base, engine
 from app.models import *
@@ -15,6 +16,19 @@ insert_data()
 
 
 app = FastAPI()
+
+@app.exception_handler(InvalidStatusTransitionError)
+def handle_invalid_status_transition(request: Request, exc: InvalidStatusTransitionError):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "status": 409,
+            "error": "CONFLICT",
+            "message": str(exc),
+            "code": "WORKFLOW_STATE_LOCKED",
+            "details": {"current_status": exc.current_status} if exc.current_status else {},
+        },
+    )
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
