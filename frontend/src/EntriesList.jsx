@@ -7,7 +7,7 @@ export default function EntriesList({ userId, counterOfRefresh }) {
 
     const [entriesList, setEntriesList] = useState([]);
     const [status, setStatus] = useState("loading");
-
+    
     useEffect(() => {
         setStatus("loading");
         fetch(`${API_URL}/api/entries?user_id=${userId}`)
@@ -73,6 +73,7 @@ export default function EntriesList({ userId, counterOfRefresh }) {
                     </thead>
                     <tbody>
                         {entriesList.map((entry) => (
+                            <>
                                 <tr key={entry.id} className="border-b border-border last:border-0">
                                     <td className="py-3 px-3 font-mono text-base text-text-primary">{entry.date}</td>
                                     <td className="py-3 px-3 font-mono text-base text-text-primary">
@@ -95,6 +96,15 @@ export default function EntriesList({ userId, counterOfRefresh }) {
                                         </td>
                                     : <td className="py-3 px-3"></td>}
                                 </tr>
+                                {entry.latest_review != null && (
+                                    <tr key={entry.latest_review.id} className="bg-surface-page">
+                                        <td colSpan={6} className="py-3 px-3 italic text-text-secondary">
+                                            {entry.latest_review.comment}
+                                        </td>
+                                    </tr>
+                                )}
+                            </>
+
                         ))}
                     </tbody>
                 </table>
