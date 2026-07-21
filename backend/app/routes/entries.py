@@ -126,13 +126,52 @@ def format_entry(entry):
 
 @router.get("/entries")
 def get_entries(
-    user_id: int | None = Query(default=None),
+    user_id: int = Query(...),
     db: Session = Depends(get_db)
 ):
+    user = (
+        db.query(User)
+        .options(joinedload(User.role))
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if user is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": "User not found.",
+                "code": "USER_NOT_FOUND",
+                "details": {
+                    "user_id": user_id
+                }
+            }
+        )
+
     query = entries_query(db)
 
-    if user_id is not None:
-        query = query.filter(Entry.user_id == user_id)
+    if user.role.name == "Student":
+        query = query.filter(Entry.user_id == user.id)
+
+    elif user.role.name == "Supervisor":
+        pass 
+
+    else:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": 403,
+                "error": "FORBIDDEN",
+                "message": "You do not have permission to access this resource.",
+                "code": "INSUFFICIENT_PERMISSIONS",
+                "details": {
+                    "user_id": user.id,
+                    "role": user.role.name
+                }
+            }
+        )
 
     entries = query.all()
 
@@ -141,14 +180,27 @@ def get_entries(
             format_entry(entry)
             for entry in entries
         ]
+
     except InvalidTimeRangeError:
         start_val = "..."
         end_val = "..."
-        
+
         for el in entries:
-            if el.start_time is None or el.end_time is None or el.end_time <= el.start_time:
-                start_val = str(el.start_time) if el.start_time is not None else "..."
-                end_val = str(el.end_time) if el.end_time is not None else "..."
+            if (
+                el.start_time is None
+                or el.end_time is None
+                or el.end_time <= el.start_time
+            ):
+                start_val = (
+                    str(el.start_time)
+                    if el.start_time is not None
+                    else "..."
+                )
+                end_val = (
+                    str(el.end_time)
+                    if el.end_time is not None
+                    else "..."
+                )
                 break
 
         return JSONResponse(
@@ -169,13 +221,59 @@ def get_entries(
 @router.get("/entries/{id}")
 def get_entry(
     id: int,
+    user_id: int = Query(...),
     db: Session = Depends(get_db)
 ):
-    entry = (
-        entries_query(db)
-        .filter(Entry.id == id)
+    user = (
+        db.query(User)
+        .options(joinedload(User.role))
+        .filter(User.id == user_id)
         .first()
     )
+
+    if user is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": "User not found.",
+                "code": "USER_NOT_FOUND",
+                "details": {
+                    "user_id": user_id
+                }
+            }
+        )
+
+    query = (
+        entries_query(db)
+        .filter(Entry.id == id)
+    )
+
+    if user.role.name == "Student":
+        query = query.filter(
+            Entry.user_id == user.id
+        )
+
+    elif user.role.name == "Supervisor":
+        pass  
+
+    else:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": 403,
+                "error": "FORBIDDEN",
+                "message": "You do not have permission to access this resource.",
+                "code": "INSUFFICIENT_PERMISSIONS",
+                "details": {
+                    "user_id": user.id,
+                    "role": user.role.name
+                }
+            }
+        )
+
+    entry = query.first()
 
     if entry is None:
         return JSONResponse(
@@ -193,6 +291,7 @@ def get_entry(
 
     try:
         return format_entry(entry)
+
     except InvalidTimeRangeError:
         return JSONResponse(
             status_code=400,
@@ -202,12 +301,19 @@ def get_entry(
                 "message": "Validation failed: 'end_time' cannot occur before or equal to 'start_time'.",
                 "code": "INVALID_TIME_RANGE",
                 "details": {
-                    "start_time": str(entry.start_time) if entry.start_time is not None else "...",
-                    "end_time": str(entry.end_time) if entry.end_time is not None else "..."
+                    "start_time": (
+                        str(entry.start_time)
+                        if entry.start_time is not None
+                        else "..."
+                    ),
+                    "end_time": (
+                        str(entry.end_time)
+                        if entry.end_time is not None
+                        else "..."
+                    )
                 }
             }
         )
-
 
 @router.post("/entries", status_code=status.HTTP_201_CREATED)
 def create_entry(
