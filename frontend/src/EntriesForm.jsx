@@ -70,7 +70,7 @@ export default function EntriesForm({ userId, setCounter}) {
 
                     setErrors(newErrors);
                 } else {
-                    setCounter()
+                    setCounter(prev => prev+1)
                     setFormData({
                         date: "",
                         startTime: "",
