@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-export default function EntriesForm({ userId }) {
+export default function EntriesForm({ userId, setCounter}) {
     const [formData, setFormData] = useState({
         date: "",
         startTime: "",
@@ -70,6 +70,7 @@ export default function EntriesForm({ userId }) {
 
                     setErrors(newErrors);
                 } else {
+                    setCounter()
                     setFormData({
                         date: "",
                         startTime: "",
@@ -93,7 +94,7 @@ export default function EntriesForm({ userId }) {
                     <label className="w-40 shrink-0">Date:</label>
                     <input required name="date" type="date" className="w-full border border-border rounded-control p-2 focus:outline-accent" value={formData.date} onChange={handleChange} />
                 </div>
-                {errors.date && <span className="text-status-revision-fg text-xs ml-40">{errors.date}</span>}
+                {errors.date && <span className="text-status-revision-fg text-xs ml-40">{`⚠️${errors.date}`}</span>}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -101,7 +102,7 @@ export default function EntriesForm({ userId }) {
                     <label className="w-40 shrink-0">Start time:</label>
                     <input required name="startTime" type="time" className="w-full border border-border rounded-control p-2 font-mono focus:outline-accent" value={formData.startTime} onChange={handleChange} />
                 </div>
-                {errors.startTime && <span className="text-status-revision-fg text-xs ml-40">{errors.startTime}</span>}
+                {errors.startTime && <span className="text-status-revision-fg text-xs ml-40">{`⚠️${errors.startTime}`}</span>}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -109,7 +110,7 @@ export default function EntriesForm({ userId }) {
                     <label className="w-40 shrink-0">End time:</label>
                     <input required name="endTime" type="time" className="w-full border border-border rounded-control p-2 font-mono focus:outline-accent" value={formData.endTime} onChange={handleChange} />
                 </div>
-                {errors.endTime && <span className="text-status-revision-fg  text-xs ml-40">{errors.endTime}</span>}
+                {errors.endTime && <span className="text-status-revision-fg  text-xs ml-40">{`⚠️${errors.endTime}`}</span>}
             </div>
 
             <div className="flex flex-row items-center gap-4">
@@ -122,7 +123,7 @@ export default function EntriesForm({ userId }) {
                     <label className="w-40 shrink-0">Work description:</label>
                     <textarea required name="workDescription" className="w-full border border-border rounded-control p-2 focus:outline-accent" value={formData.workDescription} onChange={handleChange}></textarea>
                 </div>
-                {errors.workDescription && <span className="text-status-revision-fg text-xs ml-40">{errors.workDescription}</span>}
+                {errors.workDescription && <span className="text-status-revision-fg text-xs ml-40">{`⚠️${errors.workDescription}`}</span>}
             </div>
 
             <div className="flex flex-row items-center gap-4">
@@ -130,7 +131,7 @@ export default function EntriesForm({ userId }) {
                 <input name="blockers" type="text" className="w-full border border-border rounded-control p-2 focus:outline-accent" value={formData.blockers} onChange={handleChange} />
             </div>
 
-            {errors.general && <div className="text-status-revision-fg text-sm">{errors.general}</div>}
+            {errors.general && <div className="text-status-revision-fg text-sm">{`⚠️${errors.general}`}</div>}
 
             <div className="flex flex-row gap-2 mt-2">
                 <button type="button" onClick={() => setErrors({})} className="border border-border rounded-control px-4 py-2 hover:bg-surface-page transition-colors">

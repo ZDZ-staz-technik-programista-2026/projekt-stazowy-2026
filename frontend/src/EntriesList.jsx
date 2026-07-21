@@ -3,7 +3,7 @@ import StatusBadge from "./StatusBadge";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function EntriesList({ userId }) {
+export default function EntriesList({ userId, counterOfRefresh }) {
 
     const [entriesList, setEntriesList] = useState([]);
     const [status, setStatus] = useState("loading");
@@ -20,7 +20,7 @@ export default function EntriesList({ userId }) {
                 console.log(`Error: ${error.message}`);
                 setStatus("unreachable");
             });
-    }, [userId]);
+    }, [userId, counterOfRefresh]);
 
     return (
         <div className="rounded-card border border-border-strong bg-surface-card mt-4  m-3 overflow-hidden">

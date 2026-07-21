@@ -11,9 +11,14 @@ if (!API_URL) {
   throw new Error('VITE_API_URL is not set — copy .env.example to .env');
 }
 
+
 function App() {
   const [status, setStatus] = useState("loading")
+  const [counterOfRefresh, setCounterOfRefresh] = useState(0)
   const [responseFromBackend, setResponseFromBackend] = useState("")
+  const handleRefresh = () => {
+    setCounterOfRefresh(prev => prev+1)
+  }
   useEffect(() => {
     fetch(`${API_URL}/health`)
       .then(response => response.json())
@@ -32,8 +37,8 @@ function App() {
     <>
       <Banner></Banner>
       <Header headerText="Internship Journal" onUserChange={setUserId}></Header>
-      <EntriesList userId={userId}></EntriesList>
-      <EntriesForm userId={userId}></EntriesForm>
+      <EntriesList userId={userId} counterOfRefresh={counterOfRefresh}></EntriesList>
+      <EntriesForm userId={userId} setCounter={setCounterOfRefresh}></EntriesForm>
       <div>
         <StatusBadge status="draft"/>
         <StatusBadge status="submitted" />
