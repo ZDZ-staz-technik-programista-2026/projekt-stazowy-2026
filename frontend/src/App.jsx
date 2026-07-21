@@ -5,6 +5,7 @@ import StatusBadge from './StatusBadge'
 import Header from './Header';
 import EntriesList from './EntriesList';
 import EntriesForm from './EntriesForm';
+import SupervisorView from './SupervisorView';
 
 const API_URL = import.meta.env.VITE_API_URL;
 if (!API_URL) {
@@ -16,6 +17,7 @@ function App() {
   const [status, setStatus] = useState("loading")
   const [counterOfRefresh, setCounterOfRefresh] = useState(0)
   const [responseFromBackend, setResponseFromBackend] = useState("")
+  const [selectedRole, setSelectedRole] = useState("student")
   const handleRefresh = () => {
     setCounterOfRefresh(prev => prev+1)
   }
@@ -36,20 +38,8 @@ function App() {
   return (
     <>
       <Banner></Banner>
-      <Header headerText="Internship Journal" onUserChange={setUserId}></Header>
-      <EntriesList userId={userId} counterOfRefresh={counterOfRefresh}></EntriesList>
-      <EntriesForm userId={userId} setCounter={setCounterOfRefresh}></EntriesForm>
-      <div>
-        <StatusBadge status="draft"/>
-        <StatusBadge status="submitted" />
-        <StatusBadge status="needs_revision" />
-        <StatusBadge status="approved" />
-        <p>
-          Server status: {status === 'loading' && 'checking...'}
-          {status === 'ok' && responseFromBackend}
-          {status === 'unreachable' && 'unreachable'}
-        </p>
-      </div>
+      <Header headerText={selectedRole == "Student" ? "Internship Journal" : "Approval Queue"} onUserChange={setUserId} onUserChangeRole={setSelectedRole}></Header>
+      {selectedRole == "Student" ? <EntriesList userId={userId} counterOfRefresh={counterOfRefresh}></EntriesList> : <SupervisorView/>}
     </>
   )
 }
