@@ -22,6 +22,14 @@ export default function EntriesList({ userId, counterOfRefresh }) {
             });
     }, [userId, counterOfRefresh]);
 
+    const handleSubmit = (entryId) => {
+        setEntriesList(entriesList.map(entry => {
+            if(entry.id === entryId){
+                return { ...entry, status: "submitted" };
+            }
+            return entry
+        }))
+    }
     return (
         <div className="rounded-card border border-border-strong bg-surface-card mt-4  m-3 overflow-hidden">
 
@@ -65,7 +73,6 @@ export default function EntriesList({ userId, counterOfRefresh }) {
                     </thead>
                     <tbody>
                         {entriesList.map((entry) => (
-                            <>
                                 <tr key={entry.id} className="border-b border-border last:border-0">
                                     <td className="py-3 px-3 font-mono text-base text-text-primary">{entry.date}</td>
                                     <td className="py-3 px-3 font-mono text-base text-text-primary">
@@ -82,13 +89,12 @@ export default function EntriesList({ userId, counterOfRefresh }) {
                                     </td>
                                     {entry.status == "draft" || entry.status == "needs_revision" ?
                                         <td className="py-3 px-3">
-                                            <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page">
+                                            <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => handleSubmit(entry.id)}>
                                                 Submit
                                             </button>
                                         </td>
                                     : <td className="py-3 px-3"></td>}
                                 </tr>
-                            </>
                         ))}
                     </tbody>
                 </table>
