@@ -17,7 +17,7 @@ function App() {
   const [status, setStatus] = useState("loading")
   const [counterOfRefresh, setCounterOfRefresh] = useState(0)
   const [responseFromBackend, setResponseFromBackend] = useState("")
-  const [selectedRole, setSelectedRole] = useState("student")
+  const [selectedRole, setSelectedRole] = useState("Student")
   const handleRefresh = () => {
     setCounterOfRefresh(prev => prev+1)
   }
@@ -39,7 +39,7 @@ function App() {
     <>
       <Banner></Banner>
       <Header headerText={selectedRole == "Student" ? "Internship Journal" : "Approval Queue"} onUserChange={setUserId} onUserChangeRole={setSelectedRole}></Header>
-      {selectedRole == "Student" ? <EntriesList userId={userId} counterOfRefresh={counterOfRefresh}></EntriesList> : <SupervisorView/>}
+      {selectedRole == "Student" ? <EntriesList userId={userId} counterOfRefresh={counterOfRefresh} setCounterOfRefresh={setCounterOfRefresh}></EntriesList> : <SupervisorView/>}
     </>
   )
 }
