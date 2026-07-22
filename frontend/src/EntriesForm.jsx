@@ -1,5 +1,7 @@
 import { useState } from "react"
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function EntriesForm({ userId, setCounter, setShowForm}) {
     const [formData, setFormData] = useState({
         date: "",
@@ -43,7 +45,7 @@ export default function EntriesForm({ userId, setCounter, setShowForm}) {
             "blockers": formData.blockers || "None"
         }
 
-        fetch("http://localhost:8000/api/entries", {
+        fetch(`${API_URL}/api/entries`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -54,7 +56,14 @@ export default function EntriesForm({ userId, setCounter, setShowForm}) {
             return response.json().then((data) => {
                 if (!response.ok) {
                     const newErrors = {};
-                    if (data.code === "INVALID_TIME_RANGE") {
+                    if (data.code === "MISSING_REQUIRED_FIELDS" && data.details?.errors) {
+                        const errs = data.details.errors;
+                        if (errs.date) newErrors.date = errs.date;
+                        if (errs.start_time) newErrors.startTime = errs.start_time;
+                        if (errs.end_time) newErrors.endTime = errs.end_time;
+                        if (errs.description) newErrors.workDescription = errs.description;
+                        if (errs.blockers) newErrors.blockers = errs.blockers;
+                    } else if (data.code === "INVALID_TIME_RANGE") {
                         newErrors.endTime = data.message;
                     } else if (data.code === "FUTURE_DATE_FORBIDDEN") {
                         newErrors.date = data.message;
@@ -83,7 +92,7 @@ export default function EntriesForm({ userId, setCounter, setShowForm}) {
                 }
             });
         })
-        .catch((err) => {
+        .catch(() => {
             setErrors({ general: "Connection error" });
         });
     }
