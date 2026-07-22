@@ -17,6 +17,10 @@ function App() {
   const [selectedRole, setSelectedRole] = useState(null)
   const [userId, setUserId] = useState(null)
 
+  const handleRefresh = () => {
+  setCounterOfRefresh(prev => prev + 1)
+}
+
   useEffect(() => {
     fetch(`${API_URL}/health`)
       .then(response => response.json())
