@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import StatusBadge from "./StatusBadge";
 import EntriesForm from "./EntriesForm";
+import UpdateForm from "./UpdateForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,6 +10,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
     const [entriesList, setEntriesList] = useState([]);
     const [status, setStatus] = useState("loading");
     const [showForm, setShowForm] = useState(false);
+    const [editingEntry, setEditingEntry] = useState(null)
     useEffect(() => {
         setStatus("loading");
         fetch(`${API_URL}/api/entries?user_id=${userId}`)
@@ -23,6 +25,14 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             });
     }, [userId, counterOfRefresh]);
 
+    function openNewForm(){
+        setShowForm(true)
+        setEditingEntry(null)
+    }
+    function editEntry(selectedEntry){
+        setShowForm(false)
+        setEditingEntry(selectedEntry)
+    }
     const handleSubmit = (entryId) => {
         setEntriesList(entriesList.map(entry => {
             if(entry.id === entryId){
@@ -31,16 +41,32 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             return entry
         }))
     }
+    var pText= ""
+    if(showForm){
+        pText = "New entry"
+    }else if(editingEntry){
+        pText = "Edit entry"
+    }else if(entriesList.length == 0){
+        pText = "Start documenting your internship"
+    }else{
+        pText = "My entries"
+    }
+
     return (
         <div>
-            <p className="text-xl px-4 py-4 text-text-primary">{entriesList.length == 0 ? "Start documenting your internship" : !showForm ? "My entries" : "New Entry"}</p>
-            {!showForm && (
+            <p className="text-xl px-4 py-4 text-text-primary">
+                {pText}
+            </p>
+            {!showForm && !editingEntry && (
                 <p className="px-4 py-2">
                     <button className="bg-accent  text-white text-lg py-2 px-4 rounded" onClick={() => setShowForm(!showForm)}>+ New Entry</button>
                 </p>
             )}
             {showForm && (
                 <EntriesForm userId={userId} setCounter={setCounterOfRefresh} setShowForm={setShowForm} />
+            )}
+            {editingEntry && (
+                <UpdateForm entry={editingEntry} setCounter={setCounterOfRefresh} onClose={() => setEditingEntry(null)}></UpdateForm>
             )}
             <div className="rounded-card border border-border-strong bg-surface-card mt-4  m-3 overflow-hidden">
 
@@ -56,13 +82,13 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                         </p>
                     )}
 
-                    {status == "loaded" && entriesList.length == 0 && (
+                    {status == "loaded" && entriesList.length == 0 && !showForm  && !editingEntry && (
                         <p className="p-6  text-text-muted text-base">
                             Start documenting your internship by creating your first entry.
                         </p>
                     )}
 
-                    {status == "loaded" && entriesList.length > 0 && !showForm  && (
+                    {status == "loaded" && entriesList.length > 0 && !showForm  && !editingEntry && (
                         <table className="w-full table-fixed">
                             <colgroup>
                                 <col className="w-28" />
@@ -70,7 +96,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                                 <col className="w-16" />
                                 <col />
                                 <col className="w-40" />
-                                <col className="w-24" />
+                                <col className="w-40" />
                             </colgroup>
                             <thead>
                                 <tr className="border-b border-border">
@@ -100,7 +126,10 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                                                 <StatusBadge status={entry.status} />
                                             </td>
                                             {entry.status == "draft" || entry.status == "needs_revision" ?
-                                                <td className="py-3 px-3">
+                                                <td className="py-3 px-3 flex gap-2">
+                                                    <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => editEntry(entry)}>
+                                                        Edit
+                                                    </button>
                                                     <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => handleSubmit(entry.id)}>
                                                         Submit
                                                     </button>
