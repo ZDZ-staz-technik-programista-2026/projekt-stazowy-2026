@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import Banner from './Banner'
-import StatusBadge from './StatusBadge'
-import Header from './Header';
-import EntriesList from './EntriesList';
-import EntriesForm from './EntriesForm';
-import SupervisorView from './SupervisorView';
+import Header from './Header'
+import EntriesList from './EntriesList'
+import SupervisorView from './SupervisorView'
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL
 if (!API_URL) {
-  throw new Error('VITE_API_URL is not set — copy .env.example to .env');
+  throw new Error('VITE_API_URL is not set — copy .env.example to .env')
 }
-
 
 function App() {
   const [status, setStatus] = useState("loading")
   const [counterOfRefresh, setCounterOfRefresh] = useState(0)
   const [responseFromBackend, setResponseFromBackend] = useState("")
-  const [selectedRole, setSelectedRole] = useState("Student")
+  const [selectedRole, setSelectedRole] = useState(null)
+  const [userId, setUserId] = useState(null)
+
   const handleRefresh = () => {
-    setCounterOfRefresh(prev => prev+1)
-  }
+  setCounterOfRefresh(prev => prev + 1)
+}
+
   useEffect(() => {
     fetch(`${API_URL}/health`)
       .then(response => response.json())
@@ -32,14 +32,40 @@ function App() {
         console.error(`Error message: ${error}`)
         setStatus("unreachable")
       })
-        
   }, [])
-  const [userId, setUserId] = useState(1)
+
+  let content
+  let headerText = "Loading..."
+
+  if (selectedRole === "Student") {
+    headerText = "Internship Journal"
+    content = (
+      <>
+        <EntriesList
+          userId={userId}
+          counterOfRefresh={counterOfRefresh}
+          setCounterOfRefresh={setCounterOfRefresh}
+        />
+      </>
+    )
+  } else if (selectedRole === "Supervisor") {
+    headerText = "Approval Queue"
+    content = <SupervisorView />
+  } else if (selectedRole === null) {
+    content = <p>Loading...</p>
+  } else {
+    content = <p>Unknown role.</p>
+  }
+
   return (
     <>
-      <Banner></Banner>
-      <Header headerText={selectedRole == "Student" ? "Internship Journal" : "Approval Queue"} onUserChange={setUserId} onUserChangeRole={setSelectedRole}></Header>
-      {selectedRole == "Student" ? <EntriesList userId={userId} counterOfRefresh={counterOfRefresh} setCounterOfRefresh={setCounterOfRefresh}></EntriesList> : <SupervisorView/>}
+      <Banner />
+      <Header
+        headerText={headerText}
+        onUserChange={setUserId}
+        onUserChangeRole={setSelectedRole}
+      />
+      {content}
     </>
   )
 }
