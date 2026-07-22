@@ -23,7 +23,7 @@ from app.services.post_patch_validation import (
     validate_entry_status_for_patch,
 )
 
-from app.services import validate_transition, InvalidStatusTransitionError
+from app.services import validate_transition
 
 
 router = APIRouter(prefix="/api")
@@ -552,7 +552,6 @@ def submit_entry(
         .first()
     )
 
-
     if entry is None:
         return JSONResponse(
             status_code=404,
@@ -639,25 +638,24 @@ def approve_entry(
     validate_transition(entry.status, "approved", user.role.name) # Calling this function might generate exception (InvalidStatusTransitionError) that is managed by exception handler in main.py
 
     entry.status = "approved"
+
+    review = Review(
+            entry_id = entry.id,
+            decision = entry.status,
+            created_by = request.created_by,
+        )
+    
+    db.add(review)
+
     db.commit()
     db.refresh(entry)
+    db.refresh(review)
     
     updated_entry = (
             entries_query(db)
             .filter(Entry.id == entry.id)
             .first()
         )
-    
-    review = Review(
-            entry_id = entry.id,
-            decision = updated_entry.status,
-            created_by = request.created_by,
-            created_at = datetime.datetime.now(),
-        )
-    
-    db.add(review)
-    db.commit()
-    db.refresh(review)
 
     return format_entry(updated_entry)
 
@@ -706,7 +704,7 @@ def return_entry(
             }
         )
 
-    if request.comment is None or request.comment == "":
+    if not request.comment or not request.comment.strip():
         return JSONResponse(
             status_code=400,
             content={
@@ -721,25 +719,24 @@ def return_entry(
     validate_transition(entry.status, "needs_revision", user.role.name) # Calling this function might generate exception (InvalidStatusTransitionError) that is managed by exception handler in main.py
 
     entry.status = "needs_revision"
+
+    review = Review(
+            entry_id = entry.id,
+            comment = request.comment,
+            decision = entry.status,
+            created_by = request.created_by,
+        )
+
+    db.add(review)
+
     db.commit()
     db.refresh(entry)
+    db.refresh(review)
 
     updated_entry = (
             entries_query(db)
             .filter(Entry.id == entry.id)
             .first()
         )
-
-    review = Review(
-            entry_id = entry.id,
-            comment = request.comment,
-            decision = updated_entry.status,
-            created_by = request.created_by,
-            created_at = datetime.datetime.now(),
-        )
-
-    db.add(review)
-    db.commit()
-    db.refresh(review)
 
     return format_entry(updated_entry)
