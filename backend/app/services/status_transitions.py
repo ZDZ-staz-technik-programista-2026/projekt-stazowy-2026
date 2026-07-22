@@ -1,5 +1,8 @@
 class InvalidStatusTransitionError(ValueError):
     """Raised when a status transition is not allowed."""
+    def __init__(self, message: str, current_status: str | None = None):
+        super().__init__(message)
+        self.current_status = current_status
 
 # (current_status, new_status) -> set of roles allowed to perform it
 ALLOWED_TRANSITIONS: dict[tuple[str, str], set[str]] = {
@@ -17,14 +20,17 @@ def validate_transition(current_status: str, new_status: str, role:str) -> None:
         InvalidStatusTransitionError: if the transition is not defined,
             or the role is not permitted to perform it.
     """
+
     allowed_roles = ALLOWED_TRANSITIONS.get((current_status.lower(), new_status.lower()))
 
     if allowed_roles is None:
         raise InvalidStatusTransitionError(
-            f"Transition from '{current_status}' to '{new_status}' is not allowed."
+            f"Transition from '{current_status}' to '{new_status}' is not allowed.",
+            current_status=current_status
         )
 
     if role.lower() not in allowed_roles:
         raise InvalidStatusTransitionError(
-            f"Role '{role}' is not allowed to transition from '{current_status}' to '{new_status}'."
+            f"Role '{role}' is not allowed to transition from '{current_status}' to '{new_status}'.",
+            current_status=current_status
         )
