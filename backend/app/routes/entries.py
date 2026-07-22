@@ -45,6 +45,16 @@ class EntryPatchRequest(BaseModel):
     description: Optional[str] = None
     blockers: Optional[str] = None
 
+class SubmitEntryRequest(BaseModel):
+    user_id: int
+
+class ApproveEntryRequest(BaseModel):
+    created_by: int
+
+class ReturnEntryRequest(BaseModel):
+    created_by: int
+    comment: str
+
 
 def get_db():
     db = SessionLocal()
@@ -514,13 +524,13 @@ def patch_entry(
 @router.post("/entries/{id}/submit")
 def submit_entry(
     id: int,
-    user_id: int = Query(...),
+    request: SubmitEntryRequest,
     db: Session = Depends(get_db),
 ):
     user = (
         db.query(User)
         .options(joinedload(User.role))
-        .filter(User.id == user_id)
+        .filter(User.id == request.user_id)
         .first()
     )
 
@@ -530,9 +540,9 @@ def submit_entry(
             content={
                 "status": 404,
                 "error": "NOT_FOUND",
-                "message": "User not found.",
+                "message": f"Target user resource record with ID '{request.user_id}' was not found.",
                 "code": "USER_NOT_FOUND",
-                "details": {"user_id": user_id},
+                "details": {"user_id": request.user_id},
             },
         )
     
@@ -549,7 +559,7 @@ def submit_entry(
             content={
                 "status": 404,
                 "error": "NOT_FOUND",
-                "message": f"Target time entry resource record with ID {id} was not found.",
+                "message": f"Target time entry resource record with ID '{id}' was not found.",
                 "code": "ENTRY_NOT_FOUND",
                 "details": {"entry_id": id},
             },
@@ -578,5 +588,158 @@ def submit_entry(
         .filter(Entry.id == entry.id)
         .first()
     )
+
+    return format_entry(updated_entry)
+
+
+@router.post("/entries/{id}/approve")
+def approve_entry(
+        id: int,
+        request: ApproveEntryRequest,
+        db: Session = Depends(get_db),
+    ):
+
+    user = (
+        db.query(User)
+        .options(joinedload(User.role))
+        .filter(User.id == request.created_by)
+        .first()
+    )
+
+    if user is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target user resource record with ID '{request.created_by}' was not found.",
+                "code": "USER_NOT_FOUND",
+                "details": {"user_id": request.created_by},
+            }
+        )
+
+    entry = (
+        db.query(Entry)
+        .filter(Entry.id == id)
+        .first()
+    )
+
+    if entry is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target time entry resource record with ID '{id}' was not found.",
+                "code": "ENTRY_NOT_FOUND",
+                "details": {"entry_id": id}
+            }
+        )
+
+    validate_transition(entry.status, "approved", user.role.name) # Calling this function might generate exception (InvalidStatusTransitionError) that is managed by exception handler in main.py
+
+    entry.status = "approved"
+    db.commit()
+    db.refresh(entry)
+    
+    updated_entry = (
+            entries_query(db)
+            .filter(Entry.id == entry.id)
+            .first()
+        )
+    
+    review = Review(
+            entry_id = entry.id,
+            decision = updated_entry.status,
+            created_by = request.created_by,
+            created_at = datetime.datetime.now(),
+        )
+    
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+
+    return format_entry(updated_entry)
+
+
+@router.post("/entries/{id}/return")
+def return_entry(
+        id: int,
+        request: ReturnEntryRequest,
+        db: Session = Depends(get_db),
+    ):
+
+    user = (
+        db.query(User)
+        .options(joinedload(User.role))
+        .filter(User.id == request.created_by)
+        .first()
+    )
+
+    if user is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target user resource record with ID '{request.created_by}' was not found.",
+                "code": "USER_NOT_FOUND",
+                "details": {"user_id": request.created_by},
+            }
+        )
+
+    entry = (
+        db.query(Entry)
+        .filter(Entry.id == id)
+        .first()
+    )
+
+    if entry is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target time entry resource record with ID '{id}' was not found.",
+                "code": "ENTRY_NOT_FOUND",
+                "details": {"entry_id": id}
+            }
+        )
+
+    if request.comment is None or request.comment == "":
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": 400,
+                "error": "BAD_REQUEST",
+                "message": "A feedback description comment is mandatory when requesting changes or rejecting entries.",
+                "code": "MISSING_REJECTION_COMMENT",
+                "details": { "status_id": 3 }
+            }
+        )
+    
+    validate_transition(entry.status, "needs_revision", user.role.name) # Calling this function might generate exception (InvalidStatusTransitionError) that is managed by exception handler in main.py
+
+    entry.status = "needs_revision"
+    db.commit()
+    db.refresh(entry)
+
+    updated_entry = (
+            entries_query(db)
+            .filter(Entry.id == entry.id)
+            .first()
+        )
+
+    review = Review(
+            entry_id = entry.id,
+            comment = request.comment,
+            decision = updated_entry.status,
+            created_by = request.created_by,
+            created_at = datetime.datetime.now(),
+        )
+
+    db.add(review)
+    db.commit()
+    db.refresh(review)
 
     return format_entry(updated_entry)
