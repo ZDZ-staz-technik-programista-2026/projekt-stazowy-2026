@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-export default function EntriesForm({ userId, setCounter}) {
+export default function EntriesForm({ userId, setCounter, setShowForm}) {
     const [formData, setFormData] = useState({
         date: "",
         startTime: "",
@@ -79,6 +79,7 @@ export default function EntriesForm({ userId, setCounter}) {
                         blockers: "",
                         status: "draft"
                     });
+                    setShowForm(false)
                 }
             });
         })
@@ -134,7 +135,10 @@ export default function EntriesForm({ userId, setCounter}) {
             {errors.general && <div className="text-status-revision-fg text-sm">{`⚠️${errors.general}`}</div>}
 
             <div className="flex flex-row gap-2 mt-2">
-                <button type="button" onClick={() => setErrors({})} className="border border-border rounded-control px-4 py-2 hover:bg-surface-page transition-colors">
+                <button type="button" onClick={() => {
+                    setErrors({})
+                    setShowForm(false)
+                    }} className="border border-border rounded-control px-4 py-2 hover:bg-surface-page transition-colors">
                     Cancel
                 </button>
                 <button type="submit" className="bg-accent text-surface-card rounded-control px-4 py-2 hover:opacity-90 transition-opacity">
