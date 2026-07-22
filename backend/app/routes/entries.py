@@ -530,7 +530,7 @@ def submit_entry(
             content={
                 "status": 404,
                 "error": "NOT_FOUND",
-                "message": "User not found.",
+                "message": f"Target user resource record with ID '{user_id}' was not found.",
                 "code": "USER_NOT_FOUND",
                 "details": {"user_id": user_id},
             },
@@ -549,7 +549,7 @@ def submit_entry(
             content={
                 "status": 404,
                 "error": "NOT_FOUND",
-                "message": f"Target time entry resource record with ID {id} was not found.",
+                "message": f"Target time entry resource record with ID '{id}' was not found.",
                 "code": "ENTRY_NOT_FOUND",
                 "details": {"entry_id": id},
             },
@@ -578,5 +578,63 @@ def submit_entry(
         .filter(Entry.id == entry.id)
         .first()
     )
+
+    return format_entry(updated_entry)
+
+@router.post("/entries/{id}/approve")
+def approve_entry(
+        id: int,
+        user_id: int = Query(...),
+        db: Session = Depends(get_db),
+    ):
+
+    user = (
+        db.query(User)
+        .options(joinedload(User.role))
+        .filter(User.id == user_id)
+        .first()
+    )
+
+    if user is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target user resource record with ID '{user_id}' was not found.",
+                "code": "USER_NOT_FOUND",
+                "details": {"user_id": user_id},
+            }
+        )
+
+    entry = (
+        db.query(Entry)
+        .filter(Entry.id == id)
+        .first()
+    )
+
+    if entry is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": 404,
+                "error": "NOT_FOUND",
+                "message": f"Target time entry resource record with ID '{id}' was not found.",
+                "code": "ENTRY_NOT_FOUND",
+                "details": {"entry_id": id}
+            }
+        )
+
+    validate_transition(entry.status, "approved", user.role.name) # Calling this function might generate exception (InvalidStatusTransitionError) that is managed by exception handler in main.py
+
+    entry.status = "approved"
+    db.commit()
+    db.refresh(entry)
+
+    updated_entry = (
+            entries_query(db)
+            .filter(Entry.id == entry.id)
+            .first()
+        )
 
     return format_entry(updated_entry)
