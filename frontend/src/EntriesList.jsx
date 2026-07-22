@@ -5,13 +5,11 @@ import UpdateForm from "./UpdateForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefresh}) {
+export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefresh, editingEntry, setEditingEntry }) {
     const [entriesList, setEntriesList] = useState([]);
     const [status, setStatus] = useState("loading");
     const [errorMessage, setErrorMessage] = useState("");
     const [showForm, setShowForm] = useState(false);
-    const [editingEntry, setEditingEntry] = useState(null);
-
     useEffect(() => {
         if (!userId) return;
 

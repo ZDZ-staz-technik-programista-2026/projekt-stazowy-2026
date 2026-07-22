@@ -16,6 +16,10 @@ function App() {
   const [responseFromBackend, setResponseFromBackend] = useState("")
   const [selectedRole, setSelectedRole] = useState(null)
   const [userId, setUserId] = useState(null)
+  const [editingEntry, setEditingEntry] = useState(null);
+  const handleRefresh = () => {
+  setCounterOfRefresh(prev => prev + 1)
+}
 
   useEffect(() => {
     fetch(`${API_URL}/health`)
@@ -38,9 +42,12 @@ function App() {
     content = (
       <>
         <EntriesList
+          key={userId}
           userId={userId}
           counterOfRefresh={counterOfRefresh}
           setCounterOfRefresh={setCounterOfRefresh}
+          editingEntry={editingEntry}
+          setEditingEntry={setEditingEntry}
         />
       </>
     )
@@ -60,6 +67,7 @@ function App() {
         headerText={headerText}
         onUserChange={setUserId}
         onUserChangeRole={setSelectedRole}
+        setEditingEntry={setEditingEntry}
       />
       {content}
     </>

@@ -2,11 +2,10 @@ import { useEffect, useState } from "react"
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function Header({ headerText, onUserChange, onUserChangeRole }) {
+export default function Header({ headerText, onUserChange, onUserChangeRole, setEditingEntry }) {
   const [users, setUsers] = useState([])
   const [status, setStatus] = useState("loading")
   const [selectedUserId, setSelectedUserId] = useState("")
-
   useEffect(() => {
     fetch(`${API_URL}/api/users`)
         .then(response => {
@@ -26,6 +25,7 @@ export default function Header({ headerText, onUserChange, onUserChangeRole }) {
                     setSelectedUserId(firstUser.id)
                     onUserChange(firstUser.id)
                     onUserChangeRole(firstUser.role)
+                    setEditingEntry(null)
                 }
             } else {
                 throw new Error("Invalid data format")
@@ -53,6 +53,7 @@ export default function Header({ headerText, onUserChange, onUserChangeRole }) {
             if(selectedUser){
               onUserChangeRole(selectedUser.role)
             }
+            setEditingEntry(null)
           }}
         >
           {status === "loading" && <option>⏳ Loading...</option>}
