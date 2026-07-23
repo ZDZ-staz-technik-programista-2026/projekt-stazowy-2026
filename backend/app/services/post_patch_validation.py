@@ -27,17 +27,6 @@ def validate_time_range(start_time, end_time):
                 }
             }
         )
-    except TypeError:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": 400,
-                "error": "BAD_REQUEST",
-                "message": "Times must not include timezone information.",
-                "code": "INVALID_TIME_FORMAT",
-                "details": {"start_time": str(start_time), "end_time": str(end_time)},
-            },
-        )
 
 
 def validate_future_date(entry_date: date):
