@@ -33,7 +33,6 @@ export default function ApprovalQueue({
                             data?.message || "Failed to fetch entries"
                         );
                     }
-
                     return data;
                 }),
 
@@ -44,18 +43,13 @@ export default function ApprovalQueue({
                     if (!response.ok) {
                         throw new Error("Failed to fetch users");
                     }
-
                     return data;
                 }),
         ])
             .then(([entries, users]) => {
-                if (
-                    !Array.isArray(entries) ||
-                    !Array.isArray(users)
-                ) {
+                if (!Array.isArray(entries) || !Array.isArray(users)) {
                     throw new Error("Invalid data format");
                 }
-
                 setEntriesList(entries);
                 setUsersList(users);
                 setStatus("loaded");
@@ -67,24 +61,17 @@ export default function ApprovalQueue({
             });
     }, [userId, counterOfRefresh]);
 
-
-    const refresh = () => {
-        setCounterOfRefresh((prev) => prev + 1);
-    };
-
-
     const getUserName = (id) => {
         const user = usersList.find(
             (user) => user.id === id
         );
-
         return user?.name || "Unknown user";
     };
-
 
     const submittedEntries = entriesList.filter(
         (entry) => entry.status === "submitted"
     );
+
     return (
         <div>
             <div className="rounded-card border border-border-strong bg-surface-card mt-4 m-3 overflow-hidden">
@@ -94,26 +81,29 @@ export default function ApprovalQueue({
                         Loading entries...
                     </p>
                 )}
+
                 {status === "unreachable" && (
                     <p className="p-6 text-center text-status-revision-fg">
                         {errorMessage}
                     </p>
                 )}
+
                 {status === "loaded" &&
                     submittedEntries.length === 0 && (
                         <div className="flex flex-col items-center justify-center min-h-[420px]">
                             <h2 className="text-4xl font-medium text-text-primary mb-6">
                                 All caught up!
                             </h2>
-
                             <p className="text-lg text-text-muted">
                                 There are no entries waiting for your approval
                             </p>
                         </div>
                     )}
+
                 {status === "loaded" &&
                     submittedEntries.length > 0 && (
                         <table className="w-full table-fixed">
+
                             <colgroup>
                                 <col className="w-40" />
                                 <col className="w-32" />
@@ -121,36 +111,34 @@ export default function ApprovalQueue({
                                 <col className="w-20" />
                                 <col />
                                 <col className="w-40" />
+                                <col className="w-32" />
                                 <col className="w-52" />
                             </colgroup>
+
                             <thead>
                                 <tr className="border-b border-border">
-
                                     <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
                                         Student
                                     </th>
-
                                     <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
                                         Date
                                     </th>
-
                                     <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
                                         Time
                                     </th>
-
                                     <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
                                         Hours
                                     </th>
-
                                     <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
                                         Description
                                     </th>
-
                                     <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
+                                        Blockers
+                                    </th>
+                                    <th className="text-right font-medium text-text-secondary text-sm py-2 px-3">
                                         Status
                                     </th>
-
-                                    <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
+                                    <th className="text-right font-medium text-text-secondary text-sm py-2 px-3">
                                         Action
                                     </th>
                                 </tr>
@@ -175,18 +163,23 @@ export default function ApprovalQueue({
                                                     .substring(0, 5)}
                                             </td>
                                             <td className="py-3 px-3 font-mono text-base text-text-primary">
-                                                {(entry.calculated_hours).toFixed(2)}h
+                                                {entry.calculated_hours.toFixed(2)}h
                                             </td>
                                             <td className="py-3 px-3 text-base text-text-primary truncate">
                                                 {entry.description}
                                             </td>
-                                            <td className="py-3 px-3">
-                                                <StatusBadge
-                                                    status={entry.status}
-                                                />
+                                            <td className="py-3 px-3 text-base text-text-primary truncate">
+                                                {entry.blockers || "-"}
                                             </td>
-                                            <td className="py-3 px-3">
-                                                <div className="flex gap-2">
+                                            <td className="py-3 px-3 text-right">
+                                                <div className="flex justify-end">
+                                                    <StatusBadge
+                                                        status={entry.status}
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-3 text-right">
+                                                <div className="flex gap-2 justify-end">
                                                     <button
                                                         className="bg-accent text-white text-sm py-1 px-4 rounded-control"
                                                     >
@@ -194,20 +187,21 @@ export default function ApprovalQueue({
                                                     </button>
                                                     <button
                                                         className="rounded-control border border-border-strong text-text-primary text-sm py-1 px-4 hover:bg-surface-page"
-                                                    onClick={() => {
-                                                        setReturnEntryId(entry.id);
-                                                        setReturnComment("");
-                                                    }}
+                                                        onClick={() => {
+                                                            setReturnEntryId(entry.id);
+                                                            setReturnComment("");
+                                                        }}
                                                     >
                                                         Return
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
+
                                         {returnEntryId === entry.id && (
                                             <tr className="bg-surface-page">
                                                 <td
-                                                    colSpan={7}
+                                                    colSpan={8}
                                                     className="py-3 px-3"
                                                 >
                                                     <input
@@ -231,9 +225,7 @@ export default function ApprovalQueue({
                                                             Cancel
                                                         </button>
                                                         <button
-                                                            disabled={
-                                                                !returnComment.trim()
-                                                            }
+                                                            disabled={!returnComment.trim()}
                                                             className="bg-accent text-white text-sm py-1 px-4 rounded-control disabled:opacity-50"
                                                         >
                                                             Confirm return
