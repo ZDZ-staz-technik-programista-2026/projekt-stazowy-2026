@@ -10,16 +10,14 @@ export default function ApprovalQueue({
 }) {
     const [entriesList, setEntriesList] = useState([]);
     const [usersList, setUsersList] = useState([]);
-
     const [status, setStatus] = useState("loading");
     const [errorMessage, setErrorMessage] = useState("");
-
     const [returnEntryId, setReturnEntryId] = useState(null);
     const [returnComment, setReturnComment] = useState("");
 
     useEffect(() => {
         if (!userId) return;
-
+        
         setStatus("loading");
         setErrorMessage("");
 
@@ -81,6 +79,42 @@ export default function ApprovalQueue({
         return user?.name || "Unknown user";
     };
 
+    function handleApprove(entryId) {
+        fetch(`${API_URL}/api/entries/${entryId}/approve`,{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                created_by: userId,
+            }) 
+        }).then((response) => response.json())
+        .then(
+            setCounterOfRefresh(prev => prev+1)
+        )
+        .catch(error =>
+            console.log(error.message)
+        )
+    }
+
+
+    function handleReturn(entryId){
+        fetch(`${API_URL}/api/entries/${entryId}/return`,{
+            method: "POST",
+            headers:{
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                created_by: userId,
+                comment: returnComment
+            }),
+        })
+        .then((response) => response.json())
+        .then(refresh())
+        .catch(error =>
+            console.log(error.message)
+        )
+    }
 
     const submittedEntries = entriesList.filter(
         (entry) => entry.status === "submitted"
@@ -189,6 +223,10 @@ export default function ApprovalQueue({
                                                 <div className="flex gap-2">
                                                     <button
                                                         className="bg-accent text-white text-sm py-1 px-4 rounded-control"
+                                                        onClick = {() => {
+                                                            handleApprove(entry.id)
+                                                            refresh()
+                                                        }}
                                                     >
                                                         Approve
                                                     </button>
@@ -235,6 +273,9 @@ export default function ApprovalQueue({
                                                                 !returnComment.trim()
                                                             }
                                                             className="bg-accent text-white text-sm py-1 px-4 rounded-control disabled:opacity-50"
+                                                            onClick={() => {
+                                                                handleReturn(entry.id)
+                                                            }}
                                                         >
                                                             Confirm return
                                                         </button>
