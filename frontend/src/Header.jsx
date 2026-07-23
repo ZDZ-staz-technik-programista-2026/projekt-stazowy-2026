@@ -42,7 +42,7 @@ export default function Header({ headerText, onUserChange, onUserChangeRole, set
         <h1 className="col-start-2 justify-self-center text-xl text-text-primary">{headerText}</h1>
         <select
           aria-label="Logged user"
-          className="col-start-3 justify-self-end text-base text-accent border text-text-primary border-border-strong rounded-control px-3 py-1.5 bg-transparent cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="col-start-3 justify-self-end text-base border text-text-primary border-border-strong rounded-control px-3 py-1.5 bg-transparent cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           disabled={status !== "loaded"}
           value={selectedUserId}
           onChange={(e) => {
