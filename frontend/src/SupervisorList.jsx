@@ -49,10 +49,7 @@ export default function ApprovalQueue({
                 }),
         ])
             .then(([entries, users]) => {
-                if (
-                    !Array.isArray(entries) ||
-                    !Array.isArray(users)
-                ) {
+                if (!Array.isArray(entries) || !Array.isArray(users)) {
                     throw new Error("Invalid data format");
                 }
 
@@ -67,12 +64,6 @@ export default function ApprovalQueue({
             });
     }, [userId, counterOfRefresh]);
 
-
-    const refresh = () => {
-        setCounterOfRefresh((prev) => prev + 1);
-    };
-
-
     const getUserName = (id) => {
         const user = usersList.find(
             (user) => user.id === id
@@ -81,10 +72,10 @@ export default function ApprovalQueue({
         return user?.name || "Unknown user";
     };
 
-
     const submittedEntries = entriesList.filter(
         (entry) => entry.status === "submitted"
     );
+
     return (
         <div>
             <div className="rounded-card border border-border-strong bg-surface-card mt-4 m-3 overflow-hidden">
@@ -94,11 +85,13 @@ export default function ApprovalQueue({
                         Loading entries...
                     </p>
                 )}
+
                 {status === "unreachable" && (
                     <p className="p-6 text-center text-status-revision-fg">
                         {errorMessage}
                     </p>
                 )}
+
                 {status === "loaded" &&
                     submittedEntries.length === 0 && (
                         <div className="flex flex-col items-center justify-center min-h-[420px]">
@@ -111,9 +104,11 @@ export default function ApprovalQueue({
                             </p>
                         </div>
                     )}
+
                 {status === "loaded" &&
                     submittedEntries.length > 0 && (
                         <table className="w-full table-fixed">
+
                             <colgroup>
                                 <col className="w-40" />
                                 <col className="w-32" />
@@ -121,8 +116,10 @@ export default function ApprovalQueue({
                                 <col className="w-20" />
                                 <col />
                                 <col className="w-40" />
+                                <col className="w-32" />
                                 <col className="w-52" />
                             </colgroup>
+
                             <thead>
                                 <tr className="border-b border-border">
 
@@ -147,24 +144,34 @@ export default function ApprovalQueue({
                                     </th>
 
                                     <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
+                                        Blockers
+                                    </th>
+
+                                    <th className="text-right font-medium text-text-secondary text-sm py-2 px-3">
                                         Status
                                     </th>
 
-                                    <th className="text-left font-medium text-text-secondary text-sm py-2 px-3">
+                                    <th className="text-right font-medium text-text-secondary text-sm py-2 px-3">
                                         Action
                                     </th>
+
                                 </tr>
                             </thead>
+
                             <tbody>
                                 {submittedEntries.map((entry) => (
                                     <Fragment key={entry.id}>
+
                                         <tr className="border-b border-border">
+
                                             <td className="py-3 px-3 text-base text-text-primary">
                                                 {getUserName(entry.user_id)}
                                             </td>
+
                                             <td className="py-3 px-3 font-mono text-base text-text-primary">
                                                 {entry.date}
                                             </td>
+
                                             <td className="py-3 px-3 font-mono text-base text-text-primary whitespace-nowrap">
                                                 {entry.start_time
                                                     ?.toString()
@@ -174,42 +181,60 @@ export default function ApprovalQueue({
                                                     ?.toString()
                                                     .substring(0, 5)}
                                             </td>
+
                                             <td className="py-3 px-3 font-mono text-base text-text-primary">
-                                                {(entry.calculated_hours).toFixed(2)}h
+                                                {entry.calculated_hours.toFixed(2)}h
                                             </td>
+
                                             <td className="py-3 px-3 text-base text-text-primary truncate">
                                                 {entry.description}
                                             </td>
-                                            <td className="py-3 px-3">
-                                                <StatusBadge
-                                                    status={entry.status}
-                                                />
+
+                                            <td className="py-3 px-3 text-base text-text-primary truncate">
+                                                {entry.blockers || "-"}
                                             </td>
-                                            <td className="py-3 px-3">
-                                                <div className="flex gap-2">
+
+                                            <td className="py-3 px-3 text-right">
+                                                <div className="flex justify-end">
+                                                    <StatusBadge
+                                                        status={entry.status}
+                                                    />
+                                                </div>
+                                            </td>
+
+                                            <td className="py-3 px-3 text-right">
+                                                <div className="flex gap-2 justify-end">
+
                                                     <button
                                                         className="bg-accent text-white text-sm py-1 px-4 rounded-control"
                                                     >
                                                         Approve
                                                     </button>
+
                                                     <button
                                                         className="rounded-control border border-border-strong text-text-primary text-sm py-1 px-4 hover:bg-surface-page"
-                                                    onClick={() => {
-                                                        setReturnEntryId(entry.id);
-                                                        setReturnComment("");
-                                                    }}
+                                                        onClick={() => {
+                                                            setReturnEntryId(entry.id);
+                                                            setReturnComment("");
+                                                        }}
                                                     >
                                                         Return
                                                     </button>
+
                                                 </div>
                                             </td>
+
                                         </tr>
+
+
                                         {returnEntryId === entry.id && (
                                             <tr className="bg-surface-page">
+
                                                 <td
-                                                    colSpan={7}
+                                                    colSpan={8}
                                                     className="py-3 px-3"
                                                 >
+
                                                     <input
                                                         className="w-full rounded-control border border-border-strong px-3 py-2"
                                                         placeholder="Type reason for return (mandatory)..."
@@ -220,7 +245,9 @@ export default function ApprovalQueue({
                                                             )
                                                         }
                                                     />
+
                                                     <div className="flex gap-2 mt-3">
+
                                                         <button
                                                             className="rounded-control border border-border-strong text-text-primary text-sm py-1 px-4 hover:bg-surface-page"
                                                             onClick={() => {
@@ -230,23 +257,28 @@ export default function ApprovalQueue({
                                                         >
                                                             Cancel
                                                         </button>
+
                                                         <button
-                                                            disabled={
-                                                                !returnComment.trim()
-                                                            }
+                                                            disabled={!returnComment.trim()}
                                                             className="bg-accent text-white text-sm py-1 px-4 rounded-control disabled:opacity-50"
                                                         >
                                                             Confirm return
                                                         </button>
+
                                                     </div>
+
                                                 </td>
+
                                             </tr>
                                         )}
+
                                     </Fragment>
                                 ))}
                             </tbody>
+
                         </table>
                     )}
+
             </div>
         </div>
     );
