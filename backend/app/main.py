@@ -33,32 +33,50 @@ def handle_invalid_status_transition(request: Request, exc: InvalidStatusTransit
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
-    
-    invalid_fields = []
+
+    missing_errors = {}
+    format_errors = {}
+
     for err in errors:
-        field_name = err["loc"][-1] if err["loc"] else "unknown"
-        invalid_fields.append(str(field_name))
+        field_name = str(err["loc"][-1]) if err["loc"] else "unknown"
+        error_type = err["type"]
+
+        if error_type == "missing":
+            missing_errors[field_name] = "This field is required."
+        else:
+            format_errors[field_name] = _readable_message(field_name, error_type)
+
+    if format_errors:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "status": 400,
+                "error": "BAD_REQUEST",
+                "message": "One or more fields have an invalid format.",
+                "code": "INVALID_FIELD_FORMAT",
+                "details": {"errors": format_errors},
+            },
+        )
 
     return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,  
+        status_code=status.HTTP_400_BAD_REQUEST,
         content={
             "status": 400,
             "error": "BAD_REQUEST",
-            "message": "Validation failed: One or more required fields are missing or invalid.",
+            "message": "Validation failed: One or more required fields are missing.",
             "code": "MISSING_REQUIRED_FIELDS",
-            "details": {
-                "invalid_fields": invalid_fields,
-                "errors": [
-                    {
-                        "field": err["loc"][-1] if err["loc"] else "unknown",
-                        "msg": err["msg"],
-                        "type": err["type"]
-                    }
-                    for err in errors
-                ]
-            }
-        }
+            "details": {"errors": missing_errors},
+        },
     )
+
+def _readable_message(field_name: str, error_type: str) -> str:
+    if "time" in error_type:
+        return "Enter a valid time in HH:MM format."
+    if "date" in error_type:
+        return "Enter a valid date in YYYY-MM-DD format."
+    if "int" in error_type:
+        return f"'{field_name}' must be a whole number."
+    return f"'{field_name}' has an invalid value."
 
 app.include_router(basic_api_router)
 app.include_router(entries_router)
