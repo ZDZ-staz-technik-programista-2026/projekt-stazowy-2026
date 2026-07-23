@@ -39,25 +39,28 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                 setStatus("unreachable");
             });
     }, [userId, counterOfRefresh]);
-
-    function handleSubmit(entry){
-        fetch(`${API_URL}/api/entries/${entry.id}/submit?user_id=${userId}`,{
+    function handleSubmit(entry) { 
+        fetch(`${API_URL}/api/entries/${entry.id}/submit`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
+            body: JSON.stringify({
+                user_id: userId,
+            }) 
         })
         .then((response) => {
-            if(!response.ok){
-                throw new Error("Failed to submit entry")
+            if (!response.ok) {
+                throw new Error("Failed to submit entry");
             }
-            return response.json
+            return response.json();
         })
         .then(() => {
-            setCounterOfRefresh(prev => prev+1)
-        }).catch(error => {
-            con
+            setCounterOfRefresh(prev => prev + 1); 
         })
+        .catch((error) => {
+            console.error("Error submitting entry:", error);
+        });
     }
     function editEntry(selectedEntry){
         setShowForm(false);
@@ -166,7 +169,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                                             </td>
                                         : <td className="py-3 px-3"></td>}
                                     </tr>
-                                    {entry.latest_review && (
+                                    {entry.latest_review && entry.latest_review.comment && (
                                         <tr className="bg-surface-page">
                                             <td colSpan={6} className="py-3 px-3 italic text-text-secondary">
                                                 {entry.latest_review.comment}
