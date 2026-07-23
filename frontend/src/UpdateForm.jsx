@@ -54,7 +54,7 @@ export default function UpdateForm({entry, setCounter, onClose}){
             return response.json().then((data) => {
                 if (!response.ok) {
                     const newErrors = {};
-                    if (data.code === "MISSING_REQUIRED_FIELDS" && data.details?.errors) {
+                    if (["MISSING_REQUIRED_FIELDS", "INVALID_FIELD_FORMAT"].includes(data.code) && data.details?.errors) {
                         const errs = data.details.errors;
                         if (errs.date) newErrors.date = errs.date;
                         if (errs.start_time) newErrors.startTime = errs.start_time;
