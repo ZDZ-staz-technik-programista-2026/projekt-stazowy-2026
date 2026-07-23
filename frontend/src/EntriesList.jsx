@@ -40,19 +40,30 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             });
     }, [userId, counterOfRefresh]);
 
+    function handleSubmit(entry){
+        fetch(`${API_URL}/api/entries/${entry.id}/submit?user_id=${userId}`,{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+        })
+        .then((response) => {
+            if(!response.ok){
+                throw new Error("Failed to submit entry")
+            }
+            return response.json
+        })
+        .then(() => {
+            setCounterOfRefresh(prev => prev+1)
+        }).catch(error => {
+            con
+        })
+    }
     function editEntry(selectedEntry){
         setShowForm(false);
         setEditingEntry(selectedEntry);
     }
 
-    const handleSubmit = (entryId) => {
-        setEntriesList(entriesList.map(entry => {
-            if(entry.id === entryId){
-                return { ...entry, status: "submitted" };
-            }
-            return entry;
-        }));
-    }
 
     let pText = "";
     if (status === "loaded") {
@@ -149,7 +160,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                                                 <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => editEntry(entry)}>
                                                     Edit
                                                 </button>
-                                                <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => handleSubmit(entry.id)}>
+                                                <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => handleSubmit(entry)}>
                                                     Submit
                                                 </button>
                                             </td>
