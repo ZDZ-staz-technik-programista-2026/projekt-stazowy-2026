@@ -53,7 +53,11 @@ function App() {
     )
   } else if (selectedRole === "Supervisor") {
     headerText = "Approval Queue"
-    content = <SupervisorView setCounterOfRefresh={setCounterOfRefresh}/>
+    content = <SupervisorView
+              userId={userId}
+              counterOfRefresh={counterOfRefresh}
+              setCounterOfRefresh={setCounterOfRefresh}
+    />
   } else if (selectedRole === null) {
     content = <p>Loading...</p>
   } else {
