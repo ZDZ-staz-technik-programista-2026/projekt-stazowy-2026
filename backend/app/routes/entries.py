@@ -1,7 +1,7 @@
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, joinedload
@@ -37,6 +37,13 @@ class EntryCreateRequest(BaseModel):
     description: str
     blockers: Optional[str] = "None"
 
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def reject_timezone(cls, value: datetime.time) -> datetime.time:
+        if value.tzinfo is not None:
+            raise ValueError("Time value must not include timezone information.")
+        return value
+
 
 class EntryPatchRequest(BaseModel):
     date: Optional[datetime.date] = None
@@ -45,6 +52,13 @@ class EntryPatchRequest(BaseModel):
     description: Optional[str] = None
     blockers: Optional[str] = None
 
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def reject_timezone(cls, value: Optional[datetime.time]) -> Optional[datetime.time]:
+        if value is not None and value.tzinfo is not None:
+            raise ValueError("Time value must not include timezone information.")
+        return value
+    
 class SubmitEntryRequest(BaseModel):
     user_id: int
 
