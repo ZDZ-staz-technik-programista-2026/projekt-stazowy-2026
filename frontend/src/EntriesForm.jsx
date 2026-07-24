@@ -98,7 +98,7 @@ export default function EntriesForm({ userId, setCounter, setShowForm}) {
     }
 
     return (
-        <form className="bg-surface-card border border-border rounded-card p-6 flex flex-col w-full max-w-[450px] mx-auto gap-4 mt-4 text-text-primary" onSubmit={handleSubmit}>
+        <form className="bg-surface-card border border-border rounded-card p-6 flex flex-col w-full max-w-112.5 mx-auto gap-4 mt-4 text-text-primary" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-1">
                 <div className="flex flex-row items-center gap-4">
                     <label className="w-40 shrink-0">Date:</label>

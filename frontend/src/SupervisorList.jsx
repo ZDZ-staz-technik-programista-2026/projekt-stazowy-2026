@@ -151,7 +151,7 @@ export default function ApprovalQueue({
                 )}
                 {status === "loaded" &&
                     submittedEntries.length === 0 && (
-                        <div className="flex flex-col items-center justify-center min-h-[420px]">
+                        <div className="flex flex-col items-center justify-center min-h-105">
                         <h2 className="text-3xl font-medium text-text-primary mb-6">
                             All caught up!
                         </h2>
@@ -242,7 +242,7 @@ export default function ApprovalQueue({
                                         {returnEntryId === entry.id && (
                                             <tr className="bg-surface-page">
                                                 <td colSpan={8} className="py-3 px-3">
-                                                    <input
+                                                    <textarea
                                                         className="w-full rounded-control border border-border-strong px-3 py-2"
                                                         placeholder="Type reason for return (mandatory)..."
                                                         value={returnComment}
