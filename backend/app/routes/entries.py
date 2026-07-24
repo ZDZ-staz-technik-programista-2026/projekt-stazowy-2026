@@ -23,7 +23,7 @@ from app.services.post_patch_validation import (
     validate_entry_status_for_patch,
 )
 
-from app.services import validate_transition
+from app.services import validate_transition, check_overlap
 
 
 router = APIRouter(prefix="/api")
@@ -360,24 +360,9 @@ def create_entry(
     if isinstance(description_error, JSONResponse):
         return description_error
 
-    overlap_error = check_schedule_overlap(
-        db=db,
-        user_id=request.user_id,
-        entry_date=request.date,
-        start_time=request.start_time,
-        end_time=request.end_time
-    )
-    if isinstance(overlap_error, JSONResponse):
-        return overlap_error
+    check_schedule_overlap(db=db, user_id=request.user_id, entry_date=request.date, start_time=request.start_time, end_time=request.end_time)
 
-    limit_error = check_hours_limit(
-        db=db,
-        user_id=request.user_id,
-        entry_date=request.date,
-        requested_hours=calculated_hours
-    )
-    if isinstance(limit_error, JSONResponse):
-        return limit_error
+    check_hours_limit(db=db, user_id=request.user_id, entry_date=request.date, requested_hours=calculated_hours)
 
     entry = Entry(
         user_id=request.user_id,
@@ -484,29 +469,7 @@ def patch_entry(
     )
 
     for existing in existing_entries:
-        if (
-            new_start < existing.end_time
-            and new_end > existing.start_time
-        ):
-            return JSONResponse(
-                status_code=409,
-                content={
-                    "status": 409,
-                    "error": "CONFLICT",
-                    "message": (
-                        f"Time entry allocation overlaps with an existing "
-                        f"registered block (ID: {existing.id})."
-                    ),
-                    "code": "SCHEDULE_OVERLAP",
-                    "details": {
-                        "conflicting_entry_id": existing.id,
-                        "conflicting_range": (
-                            f"{existing.start_time.strftime('%H:%M')}-"
-                            f"{existing.end_time.strftime('%H:%M')}"
-                        )
-                    }
-                }
-            )
+        check_overlap(new_start, new_end, existing.start_time, existing.end_time, existing.id)
 
     if request.date is not None:
         entry.date = request.date
