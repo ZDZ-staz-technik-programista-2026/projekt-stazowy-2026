@@ -362,7 +362,11 @@ def create_entry(
 
     check_schedule_overlap(db=db, user_id=request.user_id, entry_date=request.date, start_time=request.start_time, end_time=request.end_time)
 
-    check_hours_limit(db=db, user_id=request.user_id, entry_date=request.date, requested_hours=calculated_hours)
+    user_not_found_error = check_hours_limit(
+        db=db, user_id=request.user_id, entry_date=request.date, requested_hours=calculated_hours
+    )
+    if isinstance(user_not_found_error, JSONResponse):
+        return user_not_found_error
 
     entry = Entry(
         user_id=request.user_id,
@@ -470,6 +474,16 @@ def patch_entry(
 
     for existing in existing_entries:
         check_overlap(new_start, new_end, existing.start_time, existing.end_time, existing.id)
+
+    user_not_found_error = check_hours_limit(
+        db=db,
+        user_id=entry.user_id,
+        entry_date=new_date,
+        requested_hours=hours_or_error,  # to jest już calculated_hours z validate_time_range
+        exclude_entry_id=entry.id,
+    )
+    if isinstance(user_not_found_error, JSONResponse):
+        return user_not_found_error
 
     if request.date is not None:
         entry.date = request.date

@@ -4,9 +4,10 @@ from datetime import time
 class ScheduleOverlapError(ValueError):
     """Raised when two time ranges for the same student overlap."""
 
-    def __init__(self, message: str, conflicting_entry_id: int | None = None):
+    def __init__(self, message: str, conflicting_entry_id: int | None = None, conflicting_range: str | None = None):
         super().__init__(message)
         self.conflicting_entry_id = conflicting_entry_id
+        self.conflicting_range = conflicting_range
 
 
 class DailyLimitExceededError(ValueError):
@@ -38,6 +39,7 @@ def check_overlap(start_a: time, end_a: time, start_b: time, end_b: time, confli
         raise ScheduleOverlapError(
             f"Time entry allocation overlaps with an existing registered block (ID: {conflicting_entry_id}).",
             conflicting_entry_id=conflicting_entry_id,
+            conflicting_range=f"{start_b.strftime('%H:%M')}-{end_b.strftime('%H:%M')}",
         )
 
 

@@ -92,7 +92,8 @@ def check_hours_limit(
     db: Session,
     user_id: int,
     entry_date: date,
-    requested_hours: float
+    requested_hours: float,
+    exclude_entry_id: int | None = None,
 ):
     user = (
         db.query(User)
@@ -114,14 +115,13 @@ def check_hours_limit(
             }
         )
     
-    existing_daily_entries = (
-        db.query(Entry)
-        .filter(
-            Entry.user_id == user_id,
-            Entry.date == entry_date
-        )
-        .all()
+    daily_query = db.query(Entry).filter(
+        Entry.user_id == user_id, 
+        Entry.date == entry_date,
     )
+    if exclude_entry_id is not None:
+        daily_query = daily_query.filter(Entry.id != exclude_entry_id)
+    existing_daily_entries = daily_query.all()
     
     current_daily_hours = sum(
         calculate_hours(e.start_time, e.end_time) for e in existing_daily_entries
@@ -132,15 +132,21 @@ def check_hours_limit(
     monday = entry_date - timedelta(days=entry_date.weekday())
     sunday = monday + timedelta(days=6)
 
-    entries = (
-        db.query(Entry)
+    weekly_query = (
+    db.query(Entry)
         .filter(
             Entry.user_id == user_id,
             Entry.date >= monday,
             Entry.date <= sunday
         )
-        .all()
     )
+
+    if exclude_entry_id is not None:
+        weekly_query = weekly_query.filter(
+            Entry.id != exclude_entry_id
+        )
+
+    entries = weekly_query.all()
 
     weekly_hours = sum(
         calculate_hours(entry.start_time, entry.end_time) for entry in entries

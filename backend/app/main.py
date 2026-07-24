@@ -79,7 +79,10 @@ def handle_schedule_overlap(request: Request, exc: ScheduleOverlapError):
             "error": "CONFLICT",
             "message": str(exc),
             "code": "SCHEDULE_OVERLAP",
-            "details": {"conflicting_entry_id": exc.conflicting_entry_id},
+            "details": {
+                "conflicting_entry_id": exc.conflicting_entry_id,
+                "conflicting_range": exc.conflicting_range,
+            },
         },
     )
 
