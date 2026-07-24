@@ -1,7 +1,7 @@
 from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from app.services import InvalidStatusTransitionError
+from app.services import InvalidStatusTransitionError, ScheduleOverlapError, DailyLimitExceededError, WeeklyLimitExceededError
 from fastapi.responses import JSONResponse
 from app.database import Base, engine
 from app.models import *
@@ -69,6 +69,59 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         },
     )
 
+
+@app.exception_handler(ScheduleOverlapError)
+def handle_schedule_overlap(request: Request, exc: ScheduleOverlapError):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "status": 409,
+            "error": "CONFLICT",
+            "message": str(exc),
+            "code": "SCHEDULE_OVERLAP",
+            "details": {
+                "conflicting_entry_id": exc.conflicting_entry_id,
+                "conflicting_range": exc.conflicting_range,
+            },
+        },
+    )
+
+@app.exception_handler(DailyLimitExceededError)
+def handle_daily_limit_exceeded(request: Request, exc: DailyLimitExceededError):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "status": 400,
+            "error": "BAD_REQUEST",
+            "message": "The requested log block exceeds your daily hourly cap configuration limit (8h) or breaches the global 40-hour running weekly quota boundary.",
+            "code": "HOURLY_LIMIT_EXCEEDED",
+            "details": {
+                "type": "daily_limit_breach",
+                "daily_limit": exc.daily_limit,
+                "current_daily_accumulated_hours": exc.current_daily_hours,
+                "requested_hours": exc.requested_hours,
+            },
+        },
+    )
+
+
+@app.exception_handler(WeeklyLimitExceededError)
+def handle_weekly_limit_exceeded(request: Request, exc: WeeklyLimitExceededError):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "status": 400,
+            "error": "BAD_REQUEST",
+            "message": "The requested log block exceeds your daily hourly cap configuration limit (8h) or breaches the global 40-hour running weekly quota boundary.",
+            "code": "HOURLY_LIMIT_EXCEEDED",
+            "details": {
+                "type": "weekly_limit_breach",
+                "weekly_limit": exc.weekly_limit,
+                "current_weekly_accumulated_hours": exc.current_weekly_hours,
+                "requested_hours": exc.requested_hours,
+            },
+        },
+    )
 def _readable_message(field_name: str, error_type: str) -> str:
     if "time" in error_type:
         return "Enter a valid time in HH:MM format."
