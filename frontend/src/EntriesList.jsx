@@ -10,6 +10,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
     const [status, setStatus] = useState("loading");
     const [errorMessage, setErrorMessage] = useState("");
     const [showForm, setShowForm] = useState(false);
+
     useEffect(() => {
         if (!userId) return;
 
@@ -39,7 +40,10 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                 setStatus("unreachable");
             });
     }, [userId, counterOfRefresh]);
+
     function handleSubmit(entry) { 
+        setErrorMessage("");
+        
         fetch(`${API_URL}/api/entries/${entry.id}/submit`, {
             method: "POST",
             headers: {
@@ -50,23 +54,25 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             }) 
         })
         .then((response) => {
-            if (!response.ok) {
-                throw new Error("Failed to submit entry");
-            }
-            return response.json();
+            return response.json().then(data => {
+                if (!response.ok) {
+                    throw new Error(data?.message || "Failed to submit entry");
+                }
+                return data;
+            });
         })
         .then(() => {
             setCounterOfRefresh(prev => prev + 1); 
         })
         .catch((error) => {
-            setErrorMessage(error.message);
+            setErrorMessage(error.message); 
         });
     }
+
     function editEntry(selectedEntry){
         setShowForm(false);
         setEditingEntry(selectedEntry);
     }
-
 
     let pText = "";
     if (status === "loaded") {
@@ -103,6 +109,13 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             )}
             
             <div className="rounded-card border border-border-strong bg-surface-card mt-4 m-3 overflow-hidden">
+                
+                {errorMessage && status === "loaded" && (
+                    <div className="m-4 p-4 text-sm text-status-revision-fg bg-surface-page border border-border-strong rounded-control">
+                        <strong>Error:</strong> {errorMessage}
+                    </div>
+                )}
+
                 {status === "loading" && (
                     <p className="p-6 text-center text-text-muted text-base">
                         ⏳ Loading entries...
