@@ -59,7 +59,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             setCounterOfRefresh(prev => prev + 1); 
         })
         .catch((error) => {
-            console.error("Error submitting entry:", error);
+            setErrorMessage(error.message);
         });
     }
     function editEntry(selectedEntry){
