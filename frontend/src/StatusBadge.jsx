@@ -30,9 +30,9 @@ export default function StatusBadge({ status }) {
     }
     return (
         <div className="flex p-1">
-            <div className={`${classes[status].bg} rounded-control flex items-center py-1 px-3`}>
-                <div className={`h-2.5 w-2.5 rounded-full ${classes[status].dot} mr-2`}></div>
-                <span className={`font-medium text-base ${classes[status].text}`}>{labels[status]}</span>
+            <div className={`${classes[status].bg} rounded-control flex items-center py-1 px-3 whitespace-nowrap w-fit shrink-0`}>
+                <div className={`h-2.5 w-2.5 rounded-full ${classes[status].dot} mr-2 shrink-0`}></div>
+                <span className={`font-medium text-base ${classes[status].text} whitespace-nowrap`}>{labels[status]}</span>
             </div>
         </div>
     )

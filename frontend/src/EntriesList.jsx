@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from "react";
 import StatusBadge from "./StatusBadge";
 import EntriesForm from "./EntriesForm";
 import UpdateForm from "./UpdateForm";
+import ProgressBar from "./ProgessBar";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -89,6 +90,9 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
 
     return (
         <div>
+            <ProgressBar>
+                
+            </ProgressBar>
             {pText && (
                 <p className="text-xl px-4 py-4 text-text-primary">
                     {pText}
@@ -99,7 +103,6 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                     <button className="bg-accent text-white text-lg py-2 px-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onClick={() => setShowForm(!showForm)}>+ New Entry</button>
                 </p>
             )}
-            
             {showForm && (
                 <EntriesForm userId={userId} setCounter={setCounterOfRefresh} setShowForm={setShowForm} />
             )}
@@ -158,7 +161,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                             {entriesList.map((entry) => (
                                 <Fragment key={entry.id}>
                                     <tr className="border-b border-border last:border-0">
-                                        <td className="py-3 px-3 font-mono text-base text-text-primary">{entry.date}</td>
+                                        <td className="py-3 px-3 font-mono text-base text-text-primary whitespace-nowrap">{entry.date}</td>
                                         <td className="py-3 px-3 font-mono text-base text-text-primary">
                                             {entry.start_time.toString().substring(0,5)}-{entry.end_time.toString().substring(0,5)}
                                         </td>
