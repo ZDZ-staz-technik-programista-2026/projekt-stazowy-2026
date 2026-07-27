@@ -147,10 +147,10 @@ export default function EntriesForm({ userId, setCounter, setShowForm}) {
                 <button type="button" onClick={() => {
                     setErrors({})
                     setShowForm(false)
-                    }} className="border border-border rounded-control px-4 py-2 hover:bg-surface-page transition-colors">
+                    }} className="border border-border rounded-control px-4 py-2 hover:bg-surface-page transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
                     Cancel
                 </button>
-                <button type="submit" className="bg-accent text-surface-card rounded-control px-4 py-2 hover:opacity-90 transition-opacity">
+                <button type="submit" className="bg-accent text-surface-card rounded-control px-4 py-2 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
                     Save draft
                 </button>
             </div>
