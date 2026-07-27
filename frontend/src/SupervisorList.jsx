@@ -221,7 +221,7 @@ export default function ApprovalQueue({
                                             <td className="py-3 px-3">
                                                 <div className="flex gap-2">
                                                     <button
-                                                    className="rounded-control border border-accent text-accent text-sm py-1 px-4 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                                                    className="rounded-control bg-accent text-white text-sm py-1 px-4 hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                                                     onClick={() => handleApprove(entry.id)}
                                                     >
                                                     Approve
