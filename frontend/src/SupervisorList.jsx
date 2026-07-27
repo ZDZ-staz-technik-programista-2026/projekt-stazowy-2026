@@ -217,17 +217,17 @@ export default function ApprovalQueue({
                                                 <StatusBadge
                                                     status={entry.status}
                                                 />
-                                            </td>
+                                            </td>   
                                             <td className="py-3 px-3">
                                                 <div className="flex gap-2">
                                                     <button
-                                                        className="bg-accent text-white text-sm py-1 px-4 rounded-control"
-                                                        onClick={() => handleApprove(entry.id)}
+                                                    className="rounded-control border border-accent text-accent text-sm py-1 px-4 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                                                    onClick={() => handleApprove(entry.id)}
                                                     >
-                                                        Approve
+                                                    Approve
                                                     </button>
                                                     <button
-                                                        className="rounded-control border border-red-500 text-red-600 text-sm py-1 px-4 hover:bg-red-50"
+                                                        className="rounded-control border border-red-500 text-red-600 text-sm py-1 px-4 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                                                         onClick={() => {
                                                             setReturnEntryId(entry.id);
                                                             setReturnComment("");
@@ -250,7 +250,7 @@ export default function ApprovalQueue({
                                                     />
                                                     <div className="flex gap-2 mt-3">
                                                         <button
-                                                            className="rounded-control border border-border-strong text-text-primary text-sm py-1 px-4 hover:bg-surface-page"
+                                                            className="rounded-control border border-border-strong text-text-primary text-sm py-1 px-4 hover:bg-surface-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                                                             onClick={() => {
                                                                 setReturnEntryId(null);
                                                                 setReturnComment("");
@@ -261,7 +261,7 @@ export default function ApprovalQueue({
                                                         </button>
                                                         <button
                                                             disabled={!returnComment.trim()}
-                                                            className="rounded-control border border-red-500 text-red-600 text-sm py-1 px-4 hover:bg-red-50 disabled:opacity-50"
+                                                            className="rounded-control border border-red-500 text-red-600 text-sm py-1 px-4 hover:bg-red-50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                                                             onClick={() => handleReturn(entry.id)}
                                                         >
                                                             Confirm return

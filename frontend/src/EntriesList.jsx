@@ -96,7 +96,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             )}
             {!showForm && !editingEntry && status === "loaded" && (
                 <p className="px-4 py-2">
-                    <button className="bg-accent text-white text-lg py-2 px-4 rounded" onClick={() => setShowForm(!showForm)}>+ New Entry</button>
+                    <button className="bg-accent text-white text-lg py-2 px-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onClick={() => setShowForm(!showForm)}>+ New Entry</button>
                 </p>
             )}
             
@@ -173,10 +173,10 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                                         </td>
                                         {entry.status === "draft" || entry.status === "needs_revision" ?
                                             <td className="py-3 px-3 flex gap-2">
-                                                <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => editEntry(entry)}>
+                                                <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onClick={() => editEntry(entry)}>
                                                     Edit
                                                 </button>
-                                                <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page" onClick={() => handleSubmit(entry)}>
+                                                <button className="rounded-control border border-border-strong text-text-primary text-sm font-medium py-1 px-3 hover:bg-surface-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onClick={() => handleSubmit(entry)}>
                                                     Submit
                                                 </button>
                                             </td>
