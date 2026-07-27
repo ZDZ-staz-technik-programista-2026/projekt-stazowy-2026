@@ -125,6 +125,17 @@ http://localhost:8000/docs
 deactivate
 ```
 
+#### Running tests
+Just like running backend. You have to get all modules installed from requirements.txt and activated .venv.
+After that while in /backend directory run:
+```bash
+pytest
+```
+Expected output:
+```
+X passed in 0.XXs
+```
+
 ### Frontend
 
 The frontend lives in the `frontend/` directory at the root of the repository

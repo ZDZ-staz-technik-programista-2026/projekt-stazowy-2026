@@ -479,7 +479,7 @@ def patch_entry(
         db=db,
         user_id=entry.user_id,
         entry_date=new_date,
-        requested_hours=hours_or_error,  # to jest już calculated_hours z validate_time_range
+        requested_hours=hours_or_error,
         exclude_entry_id=entry.id,
     )
     if isinstance(user_not_found_error, JSONResponse):
