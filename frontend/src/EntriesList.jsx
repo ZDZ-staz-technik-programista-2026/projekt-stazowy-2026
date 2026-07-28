@@ -2,7 +2,6 @@ import { Fragment, useEffect, useState } from "react";
 import StatusBadge from "./StatusBadge";
 import EntriesForm from "./EntriesForm";
 import UpdateForm from "./UpdateForm";
-import ProgressBar from "./ProgessBar";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -90,9 +89,6 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
 
     return (
         <div>
-            <ProgressBar>
-                
-            </ProgressBar>
             {pText && (
                 <p className="text-xl px-4 py-4 text-text-primary">
                     {pText}
