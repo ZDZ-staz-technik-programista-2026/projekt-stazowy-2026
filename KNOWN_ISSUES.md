@@ -9,12 +9,12 @@ This document tracks known limitations, resolved defects, and deferred technical
 
 ### 1. KI-1: Daily and Weekly Worked-Hours Limits Bypass via PATCH
 - **Priority:** High
-- **Status:** Resolved (PR #58 / KAN-56)
+- **Status:** Resolved (Commit: acb9c1c062c87afd0f92804590f0259ec51b2049)
 - **Resolution:** Updated `PATCH` endpoint logic to strictly enforce daily and weekly worked-hours validation via `check_hours_limit(..., exclude_entry_id=entry.id)`. Verified with backend regression tests.
 
 ### 2. KI-2: Unhandled Server Error on Timezone-Aware Time Input
 - **Priority:** High
-- **Status:** Resolved (PR #59 / KAN-56)
+- **Status:** Resolved (PR #51 / Commit: c8012ec61e919738e0fe665e7811963a0e9bc5a2)
 - **Resolution:** Added strict validation in request models to reject timezone-aware datetime values, returning `400 INVALID_FIELD_FORMAT` instead of an unhandled 500 error. Verified with backend regression tests.
 
 ---
