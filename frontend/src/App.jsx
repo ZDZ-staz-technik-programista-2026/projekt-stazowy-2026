@@ -4,6 +4,7 @@ import Banner from './Banner'
 import Header from './Header'
 import EntriesList from './EntriesList'
 import SupervisorView from './SupervisorView'
+import WorkStats from './WorkStats'
 
 const API_URL = import.meta.env.VITE_API_URL
 if (!API_URL) {
@@ -41,6 +42,7 @@ function App() {
     headerText = "Internship Journal"
     content = (
       <>
+        <WorkStats userId={userId} counterOfRefresh={counterOfRefresh}></WorkStats>
         <EntriesList
           key={userId}
           userId={userId}
