@@ -14,23 +14,30 @@ DATABASE_URL = os.getenv(
     f"sqlite:///{BASE_DIR / 'app.db'}"
 )
 
+print("ENV DATABASE:", DATABASE_URL)
+
+
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {
         "check_same_thread": False
     }
+
 elif DATABASE_URL.startswith("mysql"):
     connect_args = {
         "ssl": {
             "ssl": True
         }
     }
+
 else:
     connect_args = {}
+
 
 engine = create_engine(
     DATABASE_URL,
     connect_args=connect_args,
 )
+
 
 SessionLocal = sessionmaker(
     autocommit=False,
