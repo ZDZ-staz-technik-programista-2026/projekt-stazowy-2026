@@ -291,13 +291,13 @@ changes.
 
 ### Connecting to Aiven MySQL locally
 
-To run the application against the Aiven MySQL database, create a `.env` file in the
-`backend/` directory.
+To run the application using the Aiven MySQL database, create a `.env` file in the `backend/` directory.
 
-The file should contain the database connection string:
+The file should contain the database connection string and the path to the Aiven CA certificate used for TLS verification:
 
 ```env
 DATABASE_URL=mysql+pymysql://<username>:<password>@<host>:<port>/<database>
+MYSQL_SSL_CA=certs/ca.pem
 ```
 
 Replace the placeholders with the connection details provided by Aiven.
@@ -306,13 +306,41 @@ Example:
 
 ```env
 DATABASE_URL=mysql+pymysql://avnadmin:your_password@your-aiven-host:24176/defaultdb
+MYSQL_SSL_CA=certs/ca.pem
 ```
 
-The `.env` file is local only and must never be committed to the repository.
-It is already excluded by `.gitignore`.
+### Aiven SSL certificate setup
 
-A `.env.example` file may be added to the repository as a template without any real
-credentials.
+Aiven MySQL requires an SSL connection with certificate verification enabled.
+
+Download the **CA Certificate** from the Aiven Console and save it locally as:
+
+```
+backend/certs/ca.pem
+```
+
+The certificate file is environment-specific and must not be committed to the repository.
+
+The recommended project structure:
+
+```
+backend/
+│
+├── app/
+│   └── database.py
+│
+├── certs/
+│   └── ca.pem
+│
+├── .env
+└── requirements.txt
+```
+
+The `.env` file and certificate files are local only and must never be committed. They are excluded using `.gitignore`.
+
+A `.env.example` file can be added to the repository as a template, but it must not contain real credentials or certificate paths specific to a developer environment.
+
+### Installing dependencies
 
 When using Aiven MySQL locally, install all dependencies from the requirements file:
 
@@ -320,11 +348,16 @@ When using Aiven MySQL locally, install all dependencies from the requirements f
 pip install -r requirements.txt
 ```
 
-The requirements file includes the required MySQL driver (`PyMySQL`) and environment
-variable support (`python-dotenv`).
+The requirements file includes:
 
-If `DATABASE_URL` is not provided, the application automatically uses the local SQLite
-database (`app.db`). This keeps daily development unchanged for the team.
+* `PyMySQL` — MySQL database driver required by SQLAlchemy
+* `python-dotenv` — loading environment variables from `.env`
+
+### Database fallback
+
+If `DATABASE_URL` is not provided, the application automatically uses a local SQLite database (`app.db`).
+
+This allows developers to run the application locally without configuring Aiven MySQL. The Aiven database is only used when a valid `DATABASE_URL` and SSL certificate configuration are provided.
 ---
 
 ## Business rules
