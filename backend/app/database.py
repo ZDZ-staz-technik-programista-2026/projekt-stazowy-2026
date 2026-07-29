@@ -1,18 +1,22 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from urllib.parse import urlparse
+
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+APP_DIR = Path(__file__).resolve().parent
+
+BACKEND_DIR = APP_DIR.parent
+
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    f"sqlite:///{BASE_DIR / 'app.db'}"
+    f"sqlite:///{APP_DIR / 'app.db'}"
 )
 
 if DATABASE_URL.startswith("sqlite"):
@@ -29,7 +33,7 @@ elif DATABASE_URL.startswith("mysql"):
 
     ca_path = Path(ssl_ca)
     if not ca_path.is_absolute():
-        ca_path = BASE_DIR / ca_path
+        ca_path = BACKEND_DIR / ca_path
 
     connect_args = {
         "ssl": {
@@ -41,12 +45,11 @@ elif DATABASE_URL.startswith("mysql"):
 else:
     connect_args = {}
 
-parsed = urlparse(DATABASE_URL)
+
+engine_info = urlparse(DATABASE_URL)
 
 print(
-    f"Database engine: {parsed.scheme}, "
-    f"host: {parsed.hostname}, "
-    f"database: {parsed.path.replace('/', '')}"
+    f"Database engine: {engine_info.scheme}"
 )
 
 engine = create_engine(
@@ -59,6 +62,5 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine
 )
-
 class Base(DeclarativeBase):
     pass
