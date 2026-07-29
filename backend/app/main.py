@@ -9,6 +9,7 @@ from app.models import *
 from app.insert_data import insert_data
 from app.routes.basicAPI import router as basic_api_router
 from app.routes.entries import router as entries_router
+from app.routes.stats import router as stats_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -133,6 +134,7 @@ def _readable_message(field_name: str, error_type: str) -> str:
 
 app.include_router(basic_api_router)
 app.include_router(entries_router)
+app.include_router(stats_router)
 
 origins = [
     "http://localhost:5173", # default Vite URL
