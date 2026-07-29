@@ -1,18 +1,41 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 
-DATABASE_URL = f"sqlite:///{BASE_DIR / 'app.db'}"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    f"sqlite:///{BASE_DIR / 'app.db'}"
+)
+
+print("ENV DATABASE:", DATABASE_URL)
+
+
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {
+        "check_same_thread": False
+    }
+
+elif DATABASE_URL.startswith("mysql"):
+    connect_args = {
+        "ssl": {
+            "ssl": True
+        }
+    }
+
+else:
+    connect_args = {}
 
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={
-        "check_same_thread": False
-    }
+    connect_args=connect_args,
 )
 
 

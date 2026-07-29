@@ -288,6 +288,43 @@ changes.
   differences (dates, Boolean, autoincrement) are re-checked, and Kacper runs the MySQL
   workshop for the rest of the team — this stays the database knowledge-transfer step.
 
+
+### Connecting to Aiven MySQL locally
+
+To run the application against the Aiven MySQL database, create a `.env` file in the
+`backend/` directory.
+
+The file should contain the database connection string:
+
+```env
+DATABASE_URL=mysql+pymysql://<username>:<password>@<host>:<port>/<database>
+```
+
+Replace the placeholders with the connection details provided by Aiven.
+
+Example:
+
+```env
+DATABASE_URL=mysql+pymysql://avnadmin:your_password@your-aiven-host:24176/defaultdb
+```
+
+The `.env` file is local only and must never be committed to the repository.
+It is already excluded by `.gitignore`.
+
+A `.env.example` file may be added to the repository as a template without any real
+credentials.
+
+When using Aiven MySQL locally, install all dependencies from the requirements file:
+
+```bash
+pip install -r requirements.txt
+```
+
+The requirements file includes the required MySQL driver (`PyMySQL`) and environment
+variable support (`python-dotenv`).
+
+If `DATABASE_URL` is not provided, the application automatically uses the local SQLite
+database (`app.db`). This keeps daily development unchanged for the team.
 ---
 
 ## Business rules
