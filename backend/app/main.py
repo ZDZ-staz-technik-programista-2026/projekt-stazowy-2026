@@ -33,6 +33,17 @@ def handle_invalid_status_transition(request: Request, exc: InvalidStatusTransit
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Central handler for all Pydantic validation errors.
+
+    Distinguishes two cases that the frontend needs to treat differently:
+    - a required field is entirely missing -> MISSING_REQUIRED_FIELDS
+    - a field was provided but has an invalid format (e.g. malformed
+      time, timezone-aware time) -> INVALID_FIELD_FORMAT
+
+    Both cases return details.errors as a dict keyed by field name
+    (not a list), since that is the shape the frontend forms expect.
+    """
     errors = exc.errors()
 
     missing_errors = {}
@@ -124,6 +135,7 @@ def handle_weekly_limit_exceeded(request: Request, exc: WeeklyLimitExceededError
         },
     )
 def _readable_message(field_name: str, error_type: str) -> str:
+    """Map a Pydantic error `type` to a short, frontend-displayable message."""
     if "time" in error_type:
         return "Enter a valid time in HH:MM format."
     if "date" in error_type:
