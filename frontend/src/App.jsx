@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import './App.css'
 import Banner from './Banner'
 import Header from './Header'
@@ -21,9 +21,13 @@ function App() {
   const [editingEntry, setEditingEntry] = useState(null);
   const [entries, setBaseEntries] = useState(null)
   const [draftEntry, setDraftEntry] = useState(null); 
-  const handleRefresh = () => {
-  setCounterOfRefresh(prev => prev + 1)
-}
+  const [dailyLimit, setDailyLimit] = useState(8.0);
+
+  const handleUserChange = useCallback((newId) => {
+    setUserId(newId)
+    setBaseEntries(null)
+    setDraftEntry(null)
+  }, [])
 
   useEffect(() => {
     fetch(`${API_URL}/health`)
@@ -45,8 +49,8 @@ function App() {
     headerText = "Internship Journal"
     content = (
       <>
-        <WorkStats userId={userId} counterOfRefresh={counterOfRefresh} ></WorkStats>
-        <DailyHours counterOfRefresh={counterOfRefresh} entries={entries} draftEntry={draftEntry}></DailyHours>
+        <WorkStats userId={userId} counterOfRefresh={counterOfRefresh} />
+        <DailyHours entries={entries} draftEntry={draftEntry} dailyLimit={dailyLimit} />
         <EntriesList
           key={userId}
           userId={userId}
@@ -77,8 +81,9 @@ function App() {
       <Banner />
       <Header
         headerText={headerText}
-        onUserChange={setUserId}
+        onUserChange={handleUserChange}
         onUserChangeRole={setSelectedRole}
+        onUserLimitChange={setDailyLimit}
         setEditingEntry={setEditingEntry}
       />
       {content}

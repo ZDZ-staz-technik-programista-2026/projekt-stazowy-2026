@@ -1,4 +1,3 @@
-import { data } from "autoprefixer";
 import { useEffect, useState } from "react";
 
 export default function WorkStats({ userId, counterOfRefresh}) {
@@ -55,7 +54,6 @@ export default function WorkStats({ userId, counterOfRefresh}) {
         return null
     }
     
-
     return(
         <>
             <div className="rounded-card border border-border-strong bg-surface-card mt-4 m-3 p-6">
