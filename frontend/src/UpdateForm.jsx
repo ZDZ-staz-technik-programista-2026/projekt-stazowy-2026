@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { calculateDecimalHours } from "./timeUtils"
 
 const API_URL = import.meta.env.VITE_API_URL 
 
@@ -10,26 +11,24 @@ export default function UpdateForm({entry, setCounter, onClose, setDraftEntry}){
         workDescription: entry.description,
         blockers: entry.blockers === "None" ? "" : entry.blockers
     })
+
     useEffect(() => {
-        if (!editedEntry.startTime || !editedEntry.endTime || !editedEntry.date) {
+        return () => setDraftEntry(null);
+    }, [setDraftEntry]);
+
+    useEffect(() => {
+        if (!editedEntry.date) {
             setDraftEntry(null);
             return;
         }
         
-        const time1 = editedEntry.startTime.split(":")
-        const time2 = editedEntry.endTime.split(":")
-        const minutes1 = parseInt(time1[0], 10) * 60 + parseInt(time1[1], 10)
-        const minutes2 = parseInt(time2[0], 10) * 60 + parseInt(time2[1], 10)
-        const diffInMinutes = Math.max(0, minutes2 - minutes1)
-        const decimalHours = Number((diffInMinutes / 60).toFixed(1))
+        const decimalHours = calculateDecimalHours(editedEntry.startTime, editedEntry.endTime);
 
         setDraftEntry({
             id: entry.id,
             date: editedEntry.date,
             hours: decimalHours
         });
-
-        return () => setDraftEntry(null);
     }, [editedEntry.startTime, editedEntry.endTime, editedEntry.date, entry.id, setDraftEntry]);
 
     const [errors, setErrors] = useState({})
@@ -40,16 +39,8 @@ export default function UpdateForm({entry, setCounter, onClose, setDraftEntry}){
     }
 
     function calculateHours() {
-        if (!editedEntry.startTime || !editedEntry.endTime) {
-            return "0.0h";
-        }
-        const time1 = editedEntry.startTime.split(":")
-        const time2 = editedEntry.endTime.split(":")
-        const minutes1 = parseInt(time1[0], 10) * 60 + parseInt(time1[1], 10)
-        const minutes2 = parseInt(time2[0], 10) * 60 + parseInt(time2[1], 10)
-        const diffInMinutes = Math.max(0, minutes2 - minutes1)
-        const decimalHours = (diffInMinutes / 60).toFixed(1)
-        return `${decimalHours}h`
+        const decimalHours = calculateDecimalHours(editedEntry.startTime, editedEntry.endTime);
+        return `${decimalHours.toFixed(1)}h`;
     }
 
     function handleSubmit(e) {

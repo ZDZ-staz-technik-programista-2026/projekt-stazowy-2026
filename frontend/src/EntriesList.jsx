@@ -40,7 +40,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                 setErrorMessage(error.message);
                 setStatus("unreachable");
             });
-    }, [userId, counterOfRefresh]);
+    }, [userId, counterOfRefresh, setBaseEntries]);
 
     function handleSubmit(entry) { 
         setErrorMessage("");

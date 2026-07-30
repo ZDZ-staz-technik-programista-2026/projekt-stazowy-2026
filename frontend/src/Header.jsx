@@ -2,10 +2,11 @@ import { useEffect, useState } from "react"
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function Header({ headerText, onUserChange, onUserChangeRole, setEditingEntry }) {
+export default function Header({ headerText, onUserChange, onUserChangeRole, onUserLimitChange, setEditingEntry }) {
   const [users, setUsers] = useState([])
   const [status, setStatus] = useState("loading")
   const [selectedUserId, setSelectedUserId] = useState("")
+  
   useEffect(() => {
     fetch(`${API_URL}/api/users`)
         .then(response => {
@@ -25,6 +26,7 @@ export default function Header({ headerText, onUserChange, onUserChangeRole, set
                     setSelectedUserId(firstUser.id)
                     onUserChange(firstUser.id)
                     onUserChangeRole(firstUser.role)
+                    if (onUserLimitChange) onUserLimitChange(firstUser.daily_hours_limit || 8.0)
                     setEditingEntry(null)
                 }
             } else {
@@ -35,7 +37,7 @@ export default function Header({ headerText, onUserChange, onUserChangeRole, set
             console.error(`Error: ${error.message}`)
             setStatus("unreachable")
         })
-  }, [onUserChange, onUserChangeRole])
+  }, [onUserChange, onUserChangeRole, onUserLimitChange, setEditingEntry])
 
   return (
     <div className="grid grid-cols-3 items-center bg-surface-card border border-border-strong rounded-card p-4 mt-4">
@@ -52,6 +54,7 @@ export default function Header({ headerText, onUserChange, onUserChangeRole, set
             const selectedUser = users.find(user => user.id === Number(newId))
             if(selectedUser){
               onUserChangeRole(selectedUser.role)
+              if (onUserLimitChange) onUserLimitChange(selectedUser.daily_hours_limit || 8.0)
             }
             setEditingEntry(null)
           }}
