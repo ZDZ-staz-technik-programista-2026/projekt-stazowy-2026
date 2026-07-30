@@ -1,3 +1,10 @@
+"""Weekly time tracking statistics API endpoints.
+
+Provides endpoints for calculating and retrieving weekly student activity 
+metrics, including total logged hours, entry counts, and approval ratios, 
+scoped dynamically by user role and database engine dialect.
+"""
+
 from datetime import date, timedelta
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
@@ -7,10 +14,20 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
 from app.models import Entry, User
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", tags=["Statistics"])
+
+
+# ---------------------------------------------------------------------------
+# Database Context Management
+# ---------------------------------------------------------------------------
 
 
 def get_db():
+    """Database session generator dependency for FastAPI requests.
+
+    Yields:
+        Session: Active SQLAlchemy database session context.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -18,14 +35,40 @@ def get_db():
         db.close()
 
 
-@router.get("/stats")
+# ---------------------------------------------------------------------------
+# API Route Handlers
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/stats",
+    summary="Get weekly time tracking statistics",
+    description=(
+        "Retrieves aggregated weekly statistics (total hours, entry counts, "
+        "and approval percentages) for students within a given calendar week. "
+        "Supervisors can view statistics for all students, whereas individual "
+        "students can only view their own aggregated data."
+    ),
+)
 def get_stats(
     user_id: int,
     week_start_date: date | None = Query(
-        None, description="Monday date YYYY-MM-DD"
+        None, description="Monday date YYYY-MM-DD indicating the target week start."
     ),
     db: Session = Depends(get_db),
 ):
+    """Calculate and return weekly metrics for students.
+
+    Args:
+        user_id (int): Requesting user's ID used for scope and role authorization.
+        week_start_date (date | None): Optional Monday start date for the requested week.
+            Defaults to the Monday of the current calendar week if omitted.
+        db (Session): Database session dependency.
+
+    Returns:
+        list[dict] | JSONResponse: List of user statistics objects or JSON error response.
+    """
+    # Verify user existence and load role
     current_user = db.query(User).filter(User.id == user_id).first()
 
     if not current_user:
@@ -40,11 +83,14 @@ def get_stats(
             },
         )
 
+    # Calculate week date boundaries (Monday to Sunday)
     if week_start_date is None:
         today = date.today()
+        # Derive the most recent Monday relative to today
         week_start = today - timedelta(days=today.weekday())
     else:
         week_start = week_start_date
+        # Ensure user-provided starting date actually falls on a Monday (weekday index 0)
         if week_start.weekday() != 0:
             return JSONResponse(
                 status_code=400,
@@ -57,8 +103,13 @@ def get_stats(
                 },
             )
 
+    # Define exclusive upper bound date for weekly SQL date filtering [week_start, week_end)
     week_end = week_start + timedelta(days=7)
 
+    # -----------------------------------------------------------------------
+    # Cross-Database Engine Time Duration Calculation
+    # Dynamic dialect handling to compute time duration in hours across MySQL, SQLite, and PostgreSQL.
+    # -----------------------------------------------------------------------
     if engine.dialect.name == "mysql":
         hours_expression = (
             func.timestampdiff(
@@ -74,21 +125,25 @@ def get_stats(
             - func.strftime("%s", Entry.start_time)
         ) / 3600.0
     else:
+        # Default PostgreSQL / ANSI SQL epoch extraction fallback
         hours_expression = (
             func.extract("epoch", Entry.end_time - Entry.start_time) / 3600.0
         )
 
+    # SQL aggregation expressions
     entry_count = func.count(Entry.id)
     approved_count = func.coalesce(
         func.sum(case((Entry.status == "approved", 1), else_=0)), 0
     )
 
+    # Construct primary aggregation query joined with Entry records within the target date range
     query = db.query(
         User.id.label("student_id"),
         User.name.label("student_name"),
         func.coalesce(func.sum(hours_expression), 0).label("total_hours"),
         entry_count.label("entry_count"),
         approved_count.label("approved_count"),
+        # Compute approval ratio percentage safely using NULLIF to prevent division-by-zero
         func.coalesce(
             (approved_count / func.nullif(entry_count, 0) * 100), 0
         ).label("approved_percentage"),
@@ -101,11 +156,14 @@ def get_stats(
         ),
     )
 
+    # Role-based scoping: non-supervisors only receive their own individual metrics
     if not current_user.role or current_user.role.name != "Supervisor":
         query = query.filter(User.id == current_user.id)
 
+    # Group metrics per student user
     rows = query.group_by(User.id, User.name).all()
 
+    # Format result set into clean JSON response structures
     return [
         {
             "student_id": row.student_id,

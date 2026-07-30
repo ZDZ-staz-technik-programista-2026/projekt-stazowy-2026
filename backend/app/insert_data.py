@@ -2,10 +2,24 @@ from app.database import SessionLocal
 from app.models import Role, User
 
 
-def insert_data():
+def insert_data() -> None:
+    """Seed the database with initial roles and test users.
+
+    Ensures idempotency by checking for the existence of required roles and 
+    user accounts before performing insert operations to avoid duplicate records.
+
+    Logic Flow:
+        1. Query existing target test users to determine if seeding is required.
+        2. Ensure base system roles ("Student", "Supervisor") exist in DB.
+        3. Create and commit missing role entities to generate valid foreign keys.
+        4. Instantiate missing Student user records with default daily hour limits.
+        5. Instantiate missing Supervisor user record.
+        6. Commit transaction and close the database session.
+    """
     db = SessionLocal()
 
     try:
+        # Define the set of required initial test users
         required_users = [
             "Test Student 1",
             "Test Student 2",
@@ -13,6 +27,7 @@ def insert_data():
             "Test Supervisor",
         ]
 
+        # Check existing users in the database to prevent duplicate seeding runs
         existing_users = (
             db.query(User.name)
             .filter(User.name.in_(required_users))
@@ -23,12 +38,16 @@ def insert_data():
             user.name for user in existing_users
         }
 
+        # Early return if all required seed users already exist
         if len(existing_user_names) == len(required_users):
             print("Test data already exists. Nothing to insert.")
             return
 
-
-        # Roles
+        # -------------------------------------------------------------------
+        # Role Seeding & Instantiation
+        # -------------------------------------------------------------------
+        
+        # Ensure "Student" role exists
         student_role = (
             db.query(Role)
             .filter_by(name="Student")
@@ -39,7 +58,7 @@ def insert_data():
             student_role = Role(name="Student")
             db.add(student_role)
 
-
+        # Ensure "Supervisor" role exists
         supervisor_role = (
             db.query(Role)
             .filter_by(name="Supervisor")
@@ -50,14 +69,16 @@ def insert_data():
             supervisor_role = Role(name="Supervisor")
             db.add(supervisor_role)
 
-
+        # Commit newly added roles to flush and assign primary key IDs
         db.commit()
 
+        # Refresh role model instances to fetch DB-assigned primary keys
         db.refresh(student_role)
         db.refresh(supervisor_role)
 
-
-        # Students
+        # -------------------------------------------------------------------
+        # Student Users Seeding
+        # -------------------------------------------------------------------
         students = [
             "Test Student 1",
             "Test Student 2",
@@ -71,6 +92,7 @@ def insert_data():
                 .first()
             )
 
+            # Only add student user if not previously seeded
             if exists is None:
                 db.add(
                     User(
@@ -80,8 +102,9 @@ def insert_data():
                     )
                 )
 
-
-        # Supervisor
+        # -------------------------------------------------------------------
+        # Supervisor User Seeding
+        # -------------------------------------------------------------------
         supervisor_name = "Test Supervisor"
 
         exists = (
@@ -90,6 +113,7 @@ def insert_data():
             .first()
         )
 
+        # Only add supervisor user if not previously seeded
         if exists is None:
             db.add(
                 User(
@@ -99,10 +123,11 @@ def insert_data():
                 )
             )
 
-
+        # Persist all newly created user records
         db.commit()
 
         print("Test data inserted.")
 
     finally:
+        # Guarantee session closure regardless of success or runtime exceptions
         db.close()
