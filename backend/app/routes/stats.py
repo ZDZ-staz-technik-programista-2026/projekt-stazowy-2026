@@ -73,8 +73,6 @@ def get_stats(
     week_end = week_start + timedelta(days=7)
 
 
-    # używamy dialektu aktywnej sesji,
-    # a nie globalnego engine aplikacji
     dialect = db.get_bind().dialect.name
 
 
