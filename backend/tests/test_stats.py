@@ -1,237 +1,181 @@
-import pytest
-from datetime import date, time
+import random
+from datetime import date, timedelta
 
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from app.main import app
-from app.database import Base
-from app.models import Role, User, Entry
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine_test = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={
-        "check_same_thread": False
-    }
-)
-
-TestingSessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine_test
-)
-
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
+_rng = random.Random()
 
-@pytest.fixture(autouse=True)
-def setup_database():
-    Base.metadata.create_all(bind=engine_test)
 
-    db = TestingSessionLocal()
+def _unique_past_date() -> date:
+    offset_days = _rng.randint(100, 1500)
+    return date.today() - timedelta(days=offset_days)
 
-    # takie same role jak w insert_data()
-    supervisor_role = Role(
-        name="Supervisor"
+
+def _unique_past_week_monday() -> date:
+    d = _unique_past_date()
+    return d - timedelta(days=d.weekday())
+
+
+def _get_student():
+    response = client.get("/api/users")
+    assert response.status_code == 200
+    students = [u for u in response.json() if u["role"] == "Student"]
+    assert students, "No Student user found in seed data"
+    return students[0]
+
+
+def _get_supervisor():
+    response = client.get("/api/users")
+    assert response.status_code == 200
+    supervisors = [u for u in response.json() if u["role"] == "Supervisor"]
+    assert supervisors, "No Supervisor user found in seed data"
+    return supervisors[0]
+
+
+def _create_entry(user_id, entry_date, start_time, end_time, description="Stats test entry"):
+    response = client.post(
+        "/api/entries",
+        json={
+            "user_id": user_id,
+            "date": str(entry_date),
+            "start_time": start_time,
+            "end_time": end_time,
+            "description": description,
+            "blockers": "None",
+        },
     )
-
-    student_role = Role(
-        name="Student"
-    )
-
-    db.add_all([
-        supervisor_role,
-        student_role
-    ])
-
-    db.commit()
-
-    db.refresh(supervisor_role)
-    db.refresh(student_role)
+    assert response.status_code == 201
+    return response.json()
 
 
-    supervisor = User(
-        name="Supervisor User",
-        daily_hours_limit=8,
-        role_id=supervisor_role.id
-    )
-
-    student = User(
-        name="Student User",
-        daily_hours_limit=6,
-        role_id=student_role.id
-    )
-
-    db.add_all([
-        supervisor,
-        student
-    ])
-
-    db.commit()
-
-    db.refresh(supervisor)
-    db.refresh(student)
-
-
-    entry1 = Entry(
-        user_id=student.id,
-        date=date(2026, 1, 10),
-        start_time=time(8, 0),
-        end_time=time(12, 0),
-        description="Student task",
-        blockers=None,
-        status="approved"
-    )
-
-    entry2 = Entry(
-        user_id=student.id,
-        date=date(2026, 1, 11),
-        start_time=time(9, 0),
-        end_time=time(13, 0),
-        description="Student task 2",
-        blockers="blocked",
-        status="draft"
+def _stats_for(user_id, week_start):
+    return client.get(
+        "/api/stats",
+        params={"user_id": user_id, "week_start_date": str(week_start)},
     )
 
 
-    db.add_all([
-        entry1,
-        entry2
-    ])
-
-    db.commit()
-
-    db.close()
-
-    yield
-
-    Base.metadata.drop_all(bind=engine_test)
+def _row_for(data, student_id):
+    if not isinstance(data, list):
+        return None
+    return next((row for row in data if row["student_id"] == student_id), None)
 
 
+def test_stats_endpoint_runs_for_existing_student():
+    student = _get_student()
+    monday = _unique_past_week_monday()
 
-def test_stats_endpoint():
-    response = client.get("api/stats?user_id=1")
+    response = _stats_for(student["id"], monday)
 
     assert response.status_code == 200
+    assert isinstance(response.json(), list)
 
 
-def test_stats_returns_json():
-    response = client.get("/api/stats?user_id=1")
+def test_stats_reflects_created_entries_for_the_selected_week():
+    student = _get_student()
+    monday = _unique_past_week_monday()
+
+    _create_entry(student["id"], monday, "08:00:00", "12:00:00")
+    _create_entry(student["id"], monday + timedelta(days=1), "09:00:00", "11:00:00")
+
+    response = _stats_for(student["id"], monday)
+    row = _row_for(response.json(), student["id"])
+
+    assert row is not None
+    assert row["entry_count"] == 2
+    assert row["total_hours"] == 6.0
+    assert row["week_start"] == str(monday)
+    assert row["week_end"] == str(monday + timedelta(days=7))
+
+
+def test_stats_excludes_entries_from_other_weeks():
+    student = _get_student()
+    monday = _unique_past_week_monday()
+    other_week_monday = monday - timedelta(days=7)
+
+    _create_entry(student["id"], monday, "08:00:00", "10:00:00")
+    _create_entry(student["id"], other_week_monday, "08:00:00", "16:00:00")
+
+    response = _stats_for(student["id"], monday)
+    row = _row_for(response.json(), student["id"])
+
+    assert row["entry_count"] == 1
+    assert row["total_hours"] == 2.0
+
+
+def test_stats_returns_zero_for_week_with_no_entries():
+    student = _get_student()
+    empty_week_monday = _unique_past_week_monday()
+
+    response = _stats_for(student["id"], empty_week_monday)
+    row = _row_for(response.json(), student["id"])
+
+    assert row is not None
+    assert row["entry_count"] == 0
+    assert row["total_hours"] == 0
+    assert row["approved_percentage"] == 0
+
+
+def test_approved_percentage_is_zero_without_any_review():
+    student = _get_student()
+    monday = _unique_past_week_monday()
+
+    _create_entry(student["id"], monday, "08:00:00", "12:00:00")
+
+    row = _row_for(_stats_for(student["id"], monday).json(), student["id"])
+
+    assert row["entry_count"] == 1
+    assert row["approved_percentage"] == 0
+
+
+def test_week_start_normalizes_any_weekday_to_that_weeks_monday():
+    student = _get_student()
+    monday = _unique_past_week_monday()
+    wednesday = monday + timedelta(days=2)
+
+    _create_entry(student["id"], monday, "14:00:00", "16:00:00")
+
+    res_monday = _stats_for(student["id"], monday)
+    res_wednesday = _stats_for(student["id"], wednesday)
+
+    assert res_monday.status_code == 200
+    assert res_wednesday.status_code == 400
+    assert res_wednesday.json()["code"] == "INVALID_WEEK_START"
+
+
+def test_supervisor_scope_includes_a_students_entries_for_the_week():
+    supervisor = _get_supervisor()
+    student = _get_student()
+    monday = _unique_past_week_monday()
+
+    _create_entry(student["id"], monday, "08:00:00", "13:00:00")
+
+    response = _stats_for(supervisor["id"], monday)
+    row = _row_for(response.json(), student["id"])
 
     assert response.status_code == 200
-
-    data = response.json()
-
-    assert isinstance(data, list)
-
+    assert row is not None
+    assert row["entry_count"] == 1
+    assert row["total_hours"] == 5.0
 
 
-def test_stats_counts_entries():
-    response = client.get("/api/stats?user_id=1")
+def test_stats_for_non_existing_user_returns_404_with_standard_error_envelope():
+    non_existing_user_id = 999_000_000 + _rng.randint(0, 999_999)
 
-    data = response.json()
-
-    assert len(data) == 1
-
-def test_stats_status_code():
-    response = client.get("/api/stats?user_id=1")
-
-    assert response.status_code == 200
-
-
-
-def test_stats_returns_list():
-    response = client.get("/api/stats?user_id=1")
-
-    data = response.json()
-
-    assert isinstance(data, list)
-
-
-
-def test_stats_not_empty_for_existing_student():
-    response = client.get("/api/stats?user_id=1")
-
-    data = response.json()
-
-    assert len(data) > 0
-
-
-
-def test_stats_contains_required_fields():
-    response = client.get("/api/stats?user_id=1")
-
-    data = response.json()
-
-    stat = data[0]
-
-    assert "student_id" in stat
-    assert "student_name" in stat
-    assert "week_start" in stat
-    assert "week_end" in stat
-
-
-
-def test_stats_returns_correct_student():
-    response = client.get("/api/stats?user_id=1")
-
-    data = response.json()
-
-    assert data[0]["student_id"] == 1
-    assert data[0]["student_name"] == "Test Student 1"
-
-
-
-def test_stats_for_non_existing_user():
-    response = client.get("/api/stats?user_id=99999")
+    response = client.get(
+        "/api/stats",
+        params={
+            "user_id": non_existing_user_id,
+            "week_start_date": str(_unique_past_week_monday()),
+        },
+    )
 
     assert response.status_code == 404
-
-
-def test_stats_week_dates_format():
-    response = client.get("/api/stats?user_id=1")
-
-    data = response.json()
-
-    stat = data[0]
-
-    assert len(stat["week_start"]) == 10
-    assert len(stat["week_end"]) == 10
-
-    assert stat["week_start"][4] == "-"
-    assert stat["week_start"][7] == "-"
-
-    assert stat["week_end"][4] == "-"
-    assert stat["week_end"][7] == "-"
-
-
-
-def test_stats_does_not_return_other_students():
-    response = client.get("/api/stats?user_id=1")
-
-    data = response.json()
-
-    for stat in data:
-        assert stat["student_id"] == 1
+    body = response.json()
+    assert body["status"] == 404
+    assert body["error"] == "NOT_FOUND"
+    assert body["code"] == "USER_NOT_FOUND"
