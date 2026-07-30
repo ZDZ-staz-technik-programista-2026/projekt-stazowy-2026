@@ -5,7 +5,7 @@ import UpdateForm from "./UpdateForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefresh, editingEntry, setEditingEntry }) {
+export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefresh, editingEntry, setEditingEntry, setBaseEntries, setDraftEntry }) {
     const [entriesList, setEntriesList] = useState([]);
     const [status, setStatus] = useState("loading");
     const [errorMessage, setErrorMessage] = useState("");
@@ -30,6 +30,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                 if (Array.isArray(data)) {
                     setStatus("loaded");
                     setEntriesList(data);
+                    setBaseEntries(data)
                 } else {
                     throw new Error("Invalid data format");
                 }
@@ -100,11 +101,11 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                 </p>
             )}
             {showForm && (
-                <EntriesForm userId={userId} setCounter={setCounterOfRefresh} setShowForm={setShowForm} />
+                <EntriesForm userId={userId} setCounter={setCounterOfRefresh} setShowForm={setShowForm}  setDraftEntry={setDraftEntry}/>
             )}
             
             {editingEntry && (
-                <UpdateForm entry={editingEntry} setCounter={setCounterOfRefresh} onClose={() => setEditingEntry(null)}></UpdateForm>
+                <UpdateForm entry={editingEntry} setCounter={setCounterOfRefresh} onClose={() => setEditingEntry(null) } setDraftEntry={setDraftEntry}></UpdateForm>
             )}
             
             <div className="rounded-card border border-border-strong bg-surface-card mt-4 m-3 overflow-hidden">
