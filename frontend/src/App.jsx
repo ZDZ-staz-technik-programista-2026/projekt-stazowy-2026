@@ -5,6 +5,7 @@ import Header from './Header'
 import EntriesList from './EntriesList'
 import SupervisorView from './SupervisorView'
 import WorkStats from './WorkStats'
+import DailyHours from './DailyHours'
 
 const API_URL = import.meta.env.VITE_API_URL
 if (!API_URL) {
@@ -18,6 +19,8 @@ function App() {
   const [selectedRole, setSelectedRole] = useState(null)
   const [userId, setUserId] = useState(null)
   const [editingEntry, setEditingEntry] = useState(null);
+  const [entries, setBaseEntries] = useState(null)
+  const [draftEntry, setDraftEntry] = useState(null); 
   const handleRefresh = () => {
   setCounterOfRefresh(prev => prev + 1)
 }
@@ -42,7 +45,8 @@ function App() {
     headerText = "Internship Journal"
     content = (
       <>
-        <WorkStats userId={userId} counterOfRefresh={counterOfRefresh}></WorkStats>
+        <WorkStats userId={userId} counterOfRefresh={counterOfRefresh} ></WorkStats>
+        <DailyHours counterOfRefresh={counterOfRefresh} entries={entries} draftEntry={draftEntry}></DailyHours>
         <EntriesList
           key={userId}
           userId={userId}
@@ -50,6 +54,8 @@ function App() {
           setCounterOfRefresh={setCounterOfRefresh}
           editingEntry={editingEntry}
           setEditingEntry={setEditingEntry}
+          setBaseEntries={setBaseEntries}
+          setDraftEntry={setDraftEntry} 
         />
       </>
     )

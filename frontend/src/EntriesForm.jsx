@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function EntriesForm({ userId, setCounter, setShowForm}) {
+export default function EntriesForm({ userId, setCounter, setShowForm, setDraftEntry}) {
     const [formData, setFormData] = useState({
         date: "",
         startTime: "",
@@ -12,6 +12,26 @@ export default function EntriesForm({ userId, setCounter, setShowForm}) {
         status: "draft"
     })
     
+    useEffect(() => {
+        if (!formData.startTime || !formData.endTime || !formData.date) {
+            setDraftEntry(null);
+            return;
+        }
+        const time1 = formData.startTime.split(":")
+        const time2 = formData.endTime.split(":")
+        const minutes1 = parseInt(time1[0], 10) * 60 + parseInt(time1[1], 10)
+        const minutes2 = parseInt(time2[0], 10) * 60 + parseInt(time2[1], 10)
+        const diffInMinutes = Math.max(0, minutes2 - minutes1)
+        const decimalHours = Number((diffInMinutes / 60).toFixed(1))
+
+        setDraftEntry({
+            id: null,
+            date: formData.date,
+            hours: decimalHours
+        });
+        return () => setDraftEntry(null);
+    }, [formData.startTime, formData.endTime, formData.date, setDraftEntry])
+
     const [errors, setErrors] = useState({})
 
     function handleChange(e) {
