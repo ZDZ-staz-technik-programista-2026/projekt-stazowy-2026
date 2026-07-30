@@ -472,6 +472,9 @@ def patch_entry(
         .all()
     )
 
+    # Exclude the entry being edited (Entry.id != entry.id) - otherwise editing
+    # an entry's own time range would always "overlap" with its own prior
+    # stored version before the PATCH is committed.
     for existing in existing_entries:
         check_overlap(new_start, new_end, existing.start_time, existing.end_time, existing.id)
 
@@ -518,6 +521,14 @@ def submit_entry(
     request: SubmitEntryRequest,
     db: Session = Depends(get_db),
 ):
+    """
+    Submit a draft or needs-revision entry for supervisor approval.
+
+    Only the student who owns the entry may submit it. Allowed status
+    transitions are enforced by the shared state machine
+    (app.services.validate_transition); any other transition, or the
+    wrong role, returns 409 WORKFLOW_STATE_LOCKED.
+    """
     user = (
         db.query(User)
         .options(joinedload(User.role))
@@ -588,6 +599,12 @@ def approve_entry(
         request: ApproveEntryRequest,
         db: Session = Depends(get_db),
     ):
+    """
+    Approve a submitted entry, permanently locking it from further edits.
+
+    Persists a Review row with decision="approved". Only a supervisor
+    may perform this transition (enforced by validate_transition).
+    """
 
     user = (
         db.query(User)
@@ -657,6 +674,13 @@ def return_entry(
         request: ReturnEntryRequest,
         db: Session = Depends(get_db),
     ):
+    """
+    Return a submitted entry to the student for revision.
+
+    A non-empty comment is mandatory (400 MISSING_REJECTION_COMMENT
+    otherwise) - the comment is what tells the student what to fix.
+    Persists a Review row with decision="needs_revision".
+    """
 
     user = (
         db.query(User)

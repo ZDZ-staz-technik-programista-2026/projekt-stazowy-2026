@@ -1,5 +1,13 @@
-from datetime import time
+"""
+Pure domain functions for enforcing worked-hours and scheduling rules:
+daily/weekly hour limits and overlap detection between entries.
 
+These functions raise domain-specific exceptions instead of returning
+HTTP responses directly. The API layer (see app/main.py) catches these
+exceptions and translates them into the appropriate HTTP status code
+and error body, keeping business rules independent of the web framework.
+"""
+from datetime import time
 
 class ScheduleOverlapError(ValueError):
     """Raised when two time ranges for the same student overlap."""
@@ -32,8 +40,16 @@ class WeeklyLimitExceededError(ValueError):
 
 def check_overlap(start_a: time, end_a: time, start_b: time, end_b: time, conflicting_entry_id: int) -> None:
     """
-    Raises ScheduleOverlapError if two time ranges overlap.
-    Adjacent ranges (e.g. 09:00-12:00 and 12:00-16:00) are NOT overlapping.
+    Raise ScheduleOverlapError if two time ranges overlap.
+
+    Ranges that share an exact boundary (e.g. 09:00-12:00 and 12:00-16:00)
+    are NOT considered overlapping - this is intentional, since a student
+    can log consecutive blocks of work back to back.
+
+    Args:
+        start_a, end_a: time range of the entry being validated.
+        start_b, end_b: time range of an existing, already-stored entry.
+        conflicting_entry_id: id of the existing entry, used for the error message.
     """
     if start_a < end_b and end_a > start_b:
         raise ScheduleOverlapError(
@@ -44,6 +60,11 @@ def check_overlap(start_a: time, end_a: time, start_b: time, end_b: time, confli
 
 
 def check_daily_limit(current_daily_hours: float, requested_hours: float, daily_limit: float) -> None:
+    """
+    Raise DailyLimitExceededError if adding requested_hours to
+    current_daily_hours (hours already logged that day) would exceed
+    the student's daily_hours_limit.
+    """
     if current_daily_hours + requested_hours > daily_limit:
         raise DailyLimitExceededError(
             "The requested log block exceeds your daily hourly cap configuration limit.",
@@ -54,6 +75,11 @@ def check_daily_limit(current_daily_hours: float, requested_hours: float, daily_
 
 
 def check_weekly_limit(current_weekly_hours: float, requested_hours: float, weekly_limit: float = 40.0) -> None:
+    """
+    Raise WeeklyLimitExceededError if adding requested_hours to
+    current_weekly_hours (hours already logged Monday-Sunday) would
+    exceed the weekly_limit (defaults to the 40h contractual cap).
+    """
     if current_weekly_hours + requested_hours > weekly_limit:
         raise WeeklyLimitExceededError(
             "The requested log block breaches the global 40-hour running weekly quota boundary.",
