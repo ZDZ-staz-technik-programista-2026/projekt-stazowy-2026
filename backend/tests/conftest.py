@@ -3,7 +3,7 @@ from pathlib import Path
 
 TEST_DB_PATH = Path(__file__).parent / "test_database.db"
 
-# pytest używa osobnej bazy w folderze tests
+# pytest use test database from tests
 os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB_PATH}"
 
 
