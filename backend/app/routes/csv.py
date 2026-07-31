@@ -2,7 +2,8 @@ import csv
 import io
 
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import StreamingResponse
+
+from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
@@ -44,11 +45,13 @@ def export_csv(
     )
 
     if user is None:
-        return {
-            "error": "USER_NOT_FOUND",
-            "message": "User not found."
-        }
-
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": "USER_NOT_FOUND",
+                "message": "User not found."
+            },
+        )
 
     entries = (
         db.query(Entry)
@@ -61,8 +64,9 @@ def export_csv(
         .all()
     )
 
-
-    output = io.StringIO()
+    output = io.StringIO(
+        newline=""
+    )
 
     writer = csv.writer(output)
 
@@ -77,7 +81,6 @@ def export_csv(
             "Created at",
         ]
     )
-
 
     for entry in entries:
         writer.writerow(
@@ -96,18 +99,13 @@ def export_csv(
         "\ufeff" + output.getvalue()
     ).encode("utf-8")
 
-
-    filename = (
-        f"{user.name}_entries.csv"
-        .replace(" ", "_")
-    )
-
+    filename = "InternshipJournalExport.csv"
 
     return StreamingResponse(
         io.BytesIO(csv_content),
-        media_type="text/csv",
+        media_type="text/csv; charset=utf-8",
         headers={
             "Content-Disposition":
-            f"attachment; filename={filename}"
+            f'attachment; filename="{filename}"'
         },
     )
