@@ -72,9 +72,116 @@ covering the INF.03 and INF.04 qualification units.
 
 ## Local setup
 
-> 🔧 **TODO (day 17):** fill this in once the app is built.
-> Every step must work on a clean machine — verify this by having a teammate follow it
-> **without asking the author any questions**.
+Every step below must work on a clean machine — this was verified by having a
+teammate follow it without asking the author any questions.
+
+### Requirements
+
+- Python 3.11+
+- Node.js 20+
+- Git
+
+### Backend
+
+Navigate to backend directory:
+```bash
+cd backend
+```
+
+#### (If not installed) Create and activate virtual environment and install dependencies:
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+##### Note
+On macOS/Linux run:
+```bash
+source .venv/bin/activate
+```
+instead of:
+```bash
+.venv\Scripts\activate
+```
+
+#### Start FastAPI server:
+```bash
+uvicorn app.main:app --reload
+```
+Backend will be available at: http://localhost:8000/
+
+The database (tables + seed data) is created automatically on first
+startup — no manual database setup is required for local development.
+By default this uses a local SQLite file; connecting to the Aiven MySQL
+instance instead is optional and documented separately under
+[Database](#database) (only needed for the MySQL portability work, not
+for day-to-day development).
+
+##### Health check endpoint:
+GET http://localhost:8000/health
+
+Expected response:
+```json
+{
+  "status": "ok"
+}
+```
+
+#### Auto-generated API documentation:
+http://localhost:8000/docs
+
+#### To deactivate the virtual environment:
+```bash
+deactivate
+```
+
+#### Running tests
+Just like running the backend, you need all modules installed from
+`requirements.txt` and the virtual environment activated. Then, from the
+`backend` directory, run:
+```bash
+pytest
+```
+Expected output:
+X passed in 0.XXs
+
+
+### Frontend
+
+The frontend lives in the `frontend/` directory at the root of the repository
+(`projekt-stazowy-2026/frontend`): a React application scaffolded with Vite.
+
+Open a new terminal at the repository root (if you're continuing in the same
+terminal from the Backend section above, run `cd ..` first to leave `backend/`),
+then navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+Copy the example environment file and adjust it if needed (this sets `VITE_API_URL`,
+the backend URL the frontend fetches from):
+```bash
+cp .env.example .env
+```
+On Windows (PowerShell), use `copy .env.example .env` instead.
+
+Install dependencies:
+```bash
+npm install
+```
+
+Start the Vite dev server:
+```bash
+npm run dev
+```
+
+Frontend will be available at: http://localhost:5173/ (Vite's default dev server port)
+
+**Note:** the backend must be running (see above) for the frontend to load or
+save any data.
+
+Once the backend is running, the auto-generated API documentation is available at `/docs`.
 
 ### Requirements
 
