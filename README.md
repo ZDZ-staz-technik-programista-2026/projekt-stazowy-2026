@@ -78,8 +78,24 @@ teammate follow it without asking the author any questions.
 ### Requirements
 
 - Python 3.11+
-- Node.js 20+
+- Node.js 20.19.0 or later (20.x line), or 22.12.0 or later.
 - Git
+
+### Get the code
+ 
+```bash
+git clone https://github.com/ZDZ-staz-technik-programista-2026/projekt-stazowy-2026.git
+cd projekt-stazowy-2026
+```
+ 
+If you already have the repository cloned, just make sure your terminal is
+at the repository root (`projekt-stazowy-2026/`) before continuing.
+ 
+(Optional, recommended) verify your toolchain versions before installing anything:
+```bash
+python --version
+node --version
+```
 
 ### Backend
 
@@ -88,21 +104,22 @@ Navigate to backend directory:
 cd backend
 ```
 
-#### (If not installed) Create and activate virtual environment and install dependencies:
+#### (If not installed) Create and activate a virtual environment, then install dependencies:
 ```bash
 python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
 ```
-
-##### Note
-On macOS/Linux run:
+ 
+Activate it — the command depends on your shell:
+ 
+| Shell | Command |
+|---|---|
+| macOS/Linux (bash/zsh) | `source .venv/bin/activate` |
+| Windows (PowerShell) | `.\.venv\Scripts\Activate.ps1` |
+| Windows (Command Prompt) | `.venv\Scripts\activate.bat` |
+ 
+Then install dependencies:
 ```bash
-source .venv/bin/activate
-```
-instead of:
-```bash
-.venv\Scripts\activate
+python -m pip install -r requirements.txt
 ```
 
 #### Start FastAPI server:
@@ -182,98 +199,6 @@ Frontend will be available at: http://localhost:5173/ (Vite's default dev server
 save any data.
 
 Once the backend is running, the auto-generated API documentation is available at `/docs`.
-
-### Requirements
-
-- Python 3.11+
-- Node.js 20+
-
-### Backend
-
-Navigate to backend directory:
-```bash
-cd backend
-```
-#### (If not installed) Create and activate virtual environment and install dependencies:
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-##### Note
-On macOS/Linux run:
-```bash
-source .venv/bin/activate
-```
-instead of:
-```bash
-.venv\Scripts\activate
-```
-#### Start FastAPI server:
-```bash
-uvicorn app.main:app --reload
-```
-Backend will be available at: http://localhost:8000/
-
-##### Health check endpoint:
-GET http://localhost:8000/health
-
-Expected response:
-{
-  "status": "ok"
-}
-
-#### Auto-generated API documentation:
-http://localhost:8000/docs
-
-#### To deactivate the virtual environment:
-```bash
-deactivate
-```
-
-#### Running tests
-Just like running backend. You have to get all modules installed from requirements.txt and activated .venv.
-After that while in /backend directory run:
-```bash
-pytest
-```
-Expected output:
-```
-X passed in 0.XXs
-```
-
-### Frontend
-
-The frontend lives in the `frontend/` directory at the root of the repository
-(`projekt-stazowy-2026/frontend`): a React application scaffolded with Vite.
-
-Navigate to the frontend directory:
-```bash
-cd frontend
-```
-
-Copy the example environment file and adjust it if needed (this sets `VITE_API_URL`,
-the backend URL the frontend fetches from):
-```bash
-cp .env.example .env
-```
-
-Install dependencies:
-```bash
-npm install
-```
-
-Start the Vite dev server:
-```bash
-npm run dev
-```
-
-Frontend will be available at: http://localhost:5173/ (Vite's default dev server port)
-
-Once the backend is running, the auto-generated API documentation is available at `/docs`.
-
----
 
 ## Frontend design system (Tailwind v4)
 
