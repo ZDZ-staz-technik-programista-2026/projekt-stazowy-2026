@@ -1,3 +1,7 @@
+/**
+ * Component responsible for fetching and displaying the student's 
+ * aggregated weekly statistics.
+ */
 import { useEffect, useState } from "react";
 
 export default function WorkStats({ userId, counterOfRefresh}) {
@@ -12,6 +16,7 @@ export default function WorkStats({ userId, counterOfRefresh}) {
         }
         setStatus("loading")
         setErrorMessage("")
+        
         fetch(`${API_URL}/api/stats?user_id=${userId}`)
             .then(response => {
                 return response.json().then(data => {
@@ -71,7 +76,6 @@ export default function WorkStats({ userId, counterOfRefresh}) {
                             </div>
                         }
             </div>
-
         </>
     );
 }

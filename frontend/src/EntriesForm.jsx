@@ -1,3 +1,7 @@
+/**
+ * Component for creating new work entries.
+ * Manages form state and handles error mappings from backend responses.
+ */
 import { useEffect, useState } from "react"
 import { calculateDecimalHours } from "./timeUtils"
 
@@ -13,10 +17,13 @@ export default function EntriesForm({ userId, setCounter, setShowForm, setDraftE
         status: "draft"
     })
     
+    // Clear the global draft tracking on unmount
     useEffect(() => {
         return () => setDraftEntry(null);
     }, [setDraftEntry]);
 
+    // Lift local state changes up to App.jsx -> DailyHours.jsx
+    // This allows the DailyHours banner to update real-time totals as the user picks times.
     useEffect(() => {
         if (!formData.date) {
             setDraftEntry(null);
@@ -26,7 +33,7 @@ export default function EntriesForm({ userId, setCounter, setShowForm, setDraftE
         const decimalHours = calculateDecimalHours(formData.startTime, formData.endTime);
 
         setDraftEntry({
-            id: null,
+            id: null, // Null because it's a new entry that hasn't been saved to the DB
             date: formData.date,
             hours: decimalHours
         });
@@ -36,7 +43,7 @@ export default function EntriesForm({ userId, setCounter, setShowForm, setDraftE
 
     function handleChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value })
-        setErrors({ ...errors, [e.target.name]: "" })
+        setErrors({ ...errors, [e.target.name]: "" }) // Clear error for the field being edited
     }
 
     function calculateHours() {
@@ -68,6 +75,9 @@ export default function EntriesForm({ userId, setCounter, setShowForm, setDraftE
             return response.json().then((data) => {
                 if (!response.ok) {
                     const newErrors = {};
+                    
+                    // Map generic backend validation codes to specific UI inputs 
+                    // so users get errors directly next to the offending field.
                     if (["MISSING_REQUIRED_FIELDS", "INVALID_FIELD_FORMAT"].includes(data.code) && data.details?.errors) {
                         const errs = data.details.errors;
                         if (errs.date) newErrors.date = errs.date;
@@ -91,6 +101,7 @@ export default function EntriesForm({ userId, setCounter, setShowForm, setDraftE
 
                     setErrors(newErrors);
                 } else {
+                    // Trigger refetch in siblings (EntriesList, WorkStats) by incrementing counter
                     setCounter(prev => prev+1)
                     setFormData({
                         date: "",

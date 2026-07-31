@@ -1,3 +1,7 @@
+/**
+ * Form for editing an existing user entry. 
+ * Initializes with the existing data and patches the entry upon submission.
+ */
 import { useEffect, useState } from "react"
 import { calculateDecimalHours } from "./timeUtils"
 
@@ -16,6 +20,8 @@ export default function UpdateForm({entry, setCounter, onClose, setDraftEntry}){
         return () => setDraftEntry(null);
     }, [setDraftEntry]);
 
+    // Continuously synchronizes local edits to the global draft entry state.
+    // DailyHours reads this state to show limits warnings instantly. 
     useEffect(() => {
         if (!editedEntry.date) {
             setDraftEntry(null);
@@ -25,7 +31,7 @@ export default function UpdateForm({entry, setCounter, onClose, setDraftEntry}){
         const decimalHours = calculateDecimalHours(editedEntry.startTime, editedEntry.endTime);
 
         setDraftEntry({
-            id: entry.id,
+            id: entry.id, // ID is provided so DailyHours knows which DB row to ignore during live calculations
             date: editedEntry.date,
             hours: decimalHours
         });
@@ -66,6 +72,7 @@ export default function UpdateForm({entry, setCounter, onClose, setDraftEntry}){
             return response.json().then((data) => {
                 if (!response.ok) {
                     const newErrors = {};
+                    // Field mapping for contextual validation errors 
                     if (["MISSING_REQUIRED_FIELDS", "INVALID_FIELD_FORMAT"].includes(data.code) && data.details?.errors) {
                         const errs = data.details.errors;
                         if (errs.date) newErrors.date = errs.date;

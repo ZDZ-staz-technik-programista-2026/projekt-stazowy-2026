@@ -1,3 +1,7 @@
+/**
+ * Global header navigation acting as a simulation for an authentication switch.
+ * Allows switching between users and their corresponding roles.
+ */
 import { useEffect, useState } from "react"
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -21,6 +25,8 @@ export default function Header({ headerText, onUserChange, onUserChangeRole, onU
             if (Array.isArray(data)) {
                 setStatus("loaded")
                 setUsers(data)
+                
+                // Automatically initialize app context with the first user available from DB 
                 if (data.length > 0 && onUserChange) {
                     const firstUser = data[0]
                     setSelectedUserId(firstUser.id)
@@ -56,7 +62,7 @@ export default function Header({ headerText, onUserChange, onUserChangeRole, onU
               onUserChangeRole(selectedUser.role)
               if (onUserLimitChange) onUserLimitChange(selectedUser.daily_hours_limit || 8.0)
             }
-            setEditingEntry(null)
+            setEditingEntry(null) // Exit edit mode when switching users
           }}
         >
           {status === "loading" && <option>⏳ Loading...</option>}
