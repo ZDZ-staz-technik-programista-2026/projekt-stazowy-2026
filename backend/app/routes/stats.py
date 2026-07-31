@@ -12,6 +12,15 @@ router = APIRouter(prefix="/api")
 
 
 def get_db():
+    """
+    Provides a database session for FastAPI endpoints.
+
+    Creates a new SQLAlchemy session and ensures that it is
+    properly closed after the request is completed.
+
+    Yields:
+        Session: Active database session.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -28,6 +37,35 @@ def get_stats(
     ),
     db: Session = Depends(get_db),
 ):
+    """
+    Returns weekly statistics for users and their time entries.
+
+    The endpoint calculates:
+    - total worked hours,
+    - number of entries,
+    - number of approved entries,
+    - percentage of approved entries.
+
+    Supervisors can view statistics for all users.
+    Other users can only view their own statistics.
+
+    Args:
+        user_id:
+            ID of the user requesting statistics.
+        week_start_date:
+            Optional Monday date defining the beginning of the week.
+            If omitted, the current week's Monday is used.
+        db:
+            Database session provided by dependency injection.
+
+    Returns:
+        list[dict]:
+            Weekly statistics grouped by user.
+
+        JSONResponse:
+            Error response when the user does not exist or the
+            provided week start date is invalid.
+    """
 
     current_user = (
         db.query(User)
@@ -51,6 +89,8 @@ def get_stats(
 
     if week_start_date is None:
         today = date.today()
+
+        # Calculate Monday of the current week.
         week_start = today - timedelta(days=today.weekday())
 
     else:
@@ -72,10 +112,11 @@ def get_stats(
 
     week_end = week_start + timedelta(days=7)
 
-
     dialect = db.get_bind().dialect.name
 
-
+    # SQL syntax for calculating time differences differs between databases.
+    # Separate expressions are used to keep the endpoint compatible with
+    # MySQL, SQLite and other SQLAlchemy-supported databases.
     if dialect == "mysql":
 
         hours_expression = (
@@ -104,7 +145,6 @@ def get_stats(
             / 3600.0
         )
 
-
     entry_count = func.count(Entry.id)
 
     approved_count = func.coalesce(
@@ -119,7 +159,6 @@ def get_stats(
         ),
         0,
     )
-
 
     query = (
         db.query(
@@ -154,7 +193,8 @@ def get_stats(
         )
     )
 
-
+    # Supervisors have access to all students' statistics.
+    # Other roles are restricted to their own records.
     if (
         not current_user.role
         or current_user.role.name != "Supervisor"
@@ -162,7 +202,6 @@ def get_stats(
         query = query.filter(
             User.id == current_user.id
         )
-
 
     rows = (
         query
@@ -172,7 +211,6 @@ def get_stats(
         )
         .all()
     )
-
 
     return [
         {

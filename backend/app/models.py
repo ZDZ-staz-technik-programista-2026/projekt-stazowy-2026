@@ -6,6 +6,12 @@ from app.database import Base
 
 
 class Role(Base):
+    """
+    Represents a user role stored in the database.
+
+    Roles define access levels and are assigned to users.
+    """
+
     __tablename__ = "roles"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -15,6 +21,13 @@ class Role(Base):
 
 
 class User(Base):
+    """
+    Represents an application user.
+
+    Users can create time entries and have a role that determines
+    their permissions in the system.
+    """
+
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -28,6 +41,13 @@ class User(Base):
 
 
 class Entry(Base):
+    """
+    Represents a user's work time entry.
+
+    Stores information about performed work, including the working
+    period, description, status and related reviews.
+    """
+
     __tablename__ = "entries"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -49,6 +69,12 @@ class Entry(Base):
 
 
 class Review(Base):
+    """
+    Represents a review made for a time entry.
+
+    Stores reviewer decisions, comments and creation information.
+    """
+
     __tablename__ = "reviews"
 
     id = Column(Integer, primary_key=True, index=True)

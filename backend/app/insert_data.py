@@ -3,6 +3,26 @@ from app.models import Role, User
 
 
 def insert_data():
+    """
+    Inserts initial test data into the database.
+
+    Creates required roles and test users if they do not already exist.
+    The function is safe to run multiple times because existing records
+    are checked before insertion.
+
+    Created data:
+        Roles:
+            - Student
+            - Supervisor
+
+        Users:
+            - Test Student 1
+            - Test Student 2
+            - Test Student 3
+            - Test Supervisor
+
+    The database session is always closed after execution.
+    """
     db = SessionLocal()
 
     try:
@@ -23,12 +43,13 @@ def insert_data():
             user.name for user in existing_users
         }
 
+        # Avoid inserting duplicate seed data when the script is executed again.
         if len(existing_user_names) == len(required_users):
             print("Test data already exists. Nothing to insert.")
             return
 
 
-        # Roles
+        # Create required roles if they do not already exist.
         student_role = (
             db.query(Role)
             .filter_by(name="Student")
@@ -57,7 +78,7 @@ def insert_data():
         db.refresh(supervisor_role)
 
 
-        # Students
+        # Create student test accounts.
         students = [
             "Test Student 1",
             "Test Student 2",
@@ -81,7 +102,7 @@ def insert_data():
                 )
 
 
-        # Supervisor
+        # Create supervisor test account.
         supervisor_name = "Test Supervisor"
 
         exists = (
