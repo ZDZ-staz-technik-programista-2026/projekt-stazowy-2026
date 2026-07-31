@@ -3,6 +3,7 @@
  * aggregated weekly statistics.
  */
 import { useEffect, useState } from "react";
+import WeeklyProgressBar from "./WeeklyProgressBar";
 
 export default function WorkStats({ userId, counterOfRefresh}) {
     const [stats, setStats] = useState(null);
@@ -62,19 +63,21 @@ export default function WorkStats({ userId, counterOfRefresh}) {
     return(
         <>
             <div className="rounded-card border border-border-strong bg-surface-card mt-4 m-3 p-6">
-                        <h2 className="text-lg font-medium text-text-primary mb-4">This Week's Summary:</h2>
-                        {stats.entry_count == 0 ? 
-                            <p className="text-text-muted">
-                                No entries logged for this week. Start working to see your progress!
-                            </p>
-                        : 
-                            <div className="p-4 mt-4 border rounded-card border-border-strong">
-                                <p className="text-xl"><span className="text-accent">{stats.student_name}</span> stats:</p>
-                                <p className="text-lg mt-4 text-text-secondary uppercase tracking-wide">Entry count: {stats.entry_count}</p>
-                                <p className="text-lg mt-4 text-text-secondary uppercase tracking-wide">Total hours worked: {stats.total_hours}</p>
-                                <p className="text-lg mt-4 text-text-secondary uppercase tracking-wide">Percentage of approved entries: {stats.approved_percentage.toFixed(0)}%</p>
-                            </div>
-                        }
+                <h2 className="text-lg font-medium text-text-primary mb-4">This Week's Summary:</h2>
+                {stats.entry_count == 0 ? 
+                    <p className="text-text-muted">
+                        No entries logged for this week. Start working to see your progress!
+                    </p>
+                : 
+                    <div className="p-4 mt-4 border rounded-card border-border-strong">
+                        <p className="text-xl"><span className="text-accent">{stats.student_name}</span> stats:</p>
+                        <p className="text-lg mt-4 text-text-secondary uppercase tracking-wide">Entry count: {stats.entry_count}</p>
+                        <p className="text-lg mt-4 text-text-secondary uppercase tracking-wide">Total hours worked: {stats.total_hours}</p>
+                        <p className="text-lg mt-4 text-text-secondary uppercase tracking-wide">Percentage of approved entries: {stats.approved_percentage.toFixed(0)}%</p>
+                    </div>
+                }
+                
+                <WeeklyProgressBar totalHours={stats.total_hours || 0} />
             </div>
         </>
     );
