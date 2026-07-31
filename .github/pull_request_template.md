@@ -1,43 +1,48 @@
 # What does this change?
 
-This change updates the README licence section to match the actual licence included in the repository.  
-The previous TODO statement incorrectly said that the repository had no licence assigned, even though the MIT LICENSE file already exists.  
-The README now states that the project is licensed under the MIT License and clarifies that third-party dependencies and assets may have their own licences.
+<!-- Describe the change in 2–4 sentences, in your own words. -->
 
 ## Related Jira task
 
-KAN-70
+<!-- Task ID, for example DZIEN-12 -->
 
 ## Type of change
 
 - [ ] New feature (`feature/`)
 - [ ] Bug fix (`fix/`)
-- [x] Documentation (`docs/`)
+- [ ] Documentation (`docs/`)
 - [ ] Refactoring — no behaviour change (`refactor/`)
 - [ ] Tests (`test/`)
 
 ## How to verify it
 
-1. Open `README.md`
-2. Navigate to the "Licence" section
-3. Confirm that it states the project is licensed under the MIT License and no longer contains the outdated TODO message
+<!--
+Steps the reviewer should follow to see that the change works. For example:
+1. Start the backend and the frontend
+2. Go to /entries and create an entry from 09:00 to 17:00
+3. Check that the worked hours are shown as 8
+-->
+
+1.
+2.
+3.
 
 ## Screenshots
 
-not applicable
+<!-- If the change touches the UI, paste a before/after screenshot. Otherwise write "not applicable". -->
 
 ---
 
 ## Author checklist
 
-- [x] The code runs locally (both frontend and backend start without errors)
-- [x] The branch follows the naming convention (`feature/`, `fix/`, ...)
-- [x] Commit messages are descriptive and written in the imperative mood
-- [x] I am not committing the database file, `node_modules/`, `venv/` or `.env`
-- [x] There is **no real personal data** in the code or in the test fixtures
-- [x] **I understand every line in this pull request** and can explain it during review
+- [ ] The code runs locally (both frontend and backend start without errors)
+- [ ] The branch follows the naming convention (`feature/`, `fix/`, ...)
+- [ ] Commit messages are descriptive and written in the imperative mood
+- [ ] I am not committing the database file, `node_modules/`, `venv/` or `.env`
+- [ ] There is **no real personal data** in the code or in the test fixtures
+- [ ] **I understand every line in this pull request** and can explain it during review
       (this includes anything written with the help of an AI assistant)
-- [x] *(from day 14)* The `pytest` suite passes
+- [ ] *(from day 14)* The `pytest` suite passes
 
 ## Reviewer checklist
 
