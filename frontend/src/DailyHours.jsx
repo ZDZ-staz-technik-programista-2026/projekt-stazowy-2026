@@ -1,3 +1,7 @@
+/**
+ * Calculates and displays the total worked hours for a specific date.
+ * Interacts with ongoing user input (draftEntry) to show real-time limits.
+ */
 export default function DailyHours({ entries, draftEntry, dailyLimit }) {
 
     if (!entries) {
@@ -14,18 +18,23 @@ export default function DailyHours({ entries, draftEntry, dailyLimit }) {
     const day = String(currentDate.getDate()).padStart(2,'0')
     const todayFormatted = `${year}-${month}-${day}`
 
+    // Determine which date to summarize: if the user is currently editing/creating an entry,
+    // track that entry's date. Otherwise, track today.
     const activeDate = (draftEntry && draftEntry.date) ? draftEntry.date : todayFormatted;
 
     const dateEntries = entries.filter(entry => entry.date === activeDate)
     let totalHours = 0;
     
     dateEntries.forEach(entry => {
+        // If we are editing an existing entry, skip its old saved hours in the sum.
+        // We will add the new draft hours below instead, avoiding double-counting.
         if (draftEntry && draftEntry.id === entry.id) {
             return; 
         }
         totalHours += entry.calculated_hours;
     });
 
+    // Add the ongoing draft hours (real-time form input)
     if (draftEntry && draftEntry.date === activeDate && typeof draftEntry.hours === 'number') {
         totalHours += draftEntry.hours;
     }

@@ -1,3 +1,6 @@
+/**
+ * Component for Supervisors to view and process submitted journal entries.
+ */
 import { Fragment, useEffect, useState } from "react";
 import StatusBadge from "./StatusBadge";
 
@@ -13,6 +16,8 @@ export default function ApprovalQueue({
     const [status, setStatus] = useState("loading");
     const [errorMessage, setErrorMessage] = useState("");
     const [actionError, setActionError] = useState("");
+    
+    // State to handle the inline comment form when returning an entry to a student
     const [returnEntryId, setReturnEntryId] = useState(null);
     const [returnComment, setReturnComment] = useState("");
 
@@ -22,6 +27,9 @@ export default function ApprovalQueue({
         setStatus("loading");
         setErrorMessage("");
 
+        // Concurrent fetch: We need both the entries and the user data (for names)
+        // because entries only hold `user_id`. Using Promise.all guarantees UI 
+        // doesn't render until both datasets are complete.
         Promise.all([
             fetch(`${API_URL}/api/entries?user_id=${userId}`)
                 .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
@@ -64,7 +72,6 @@ export default function ApprovalQueue({
     const refresh = () => {
         setCounterOfRefresh((prev) => prev + 1);
     };
-
 
     const getUserName = (id) => {
         const user = usersList.find(
@@ -126,6 +133,7 @@ export default function ApprovalQueue({
         });
     }
 
+    // A supervisor only acts on entries that have explicitly been submitted.
     const submittedEntries = entriesList.filter(
         (entry) => entry.status === "submitted"
     );
@@ -239,6 +247,7 @@ export default function ApprovalQueue({
                                                 </div>
                                             </td>
                                         </tr>
+                                        {/* Inline return comment form logic */}
                                         {returnEntryId === entry.id && (
                                             <tr className="bg-surface-page">
                                                 <td colSpan={8} className="py-3 px-3">

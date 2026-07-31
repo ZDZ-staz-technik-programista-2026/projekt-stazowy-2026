@@ -1,3 +1,8 @@
+/**
+ * Main application entry point. 
+ * Manages global application state such as the currently logged-in user, their role, 
+ * and orchestration of data refetches across sibling components.
+ */
 import { useEffect, useState, useCallback } from 'react'
 import './App.css'
 import Banner from './Banner'
@@ -14,15 +19,24 @@ if (!API_URL) {
 
 function App() {
   const [status, setStatus] = useState("loading")
+  
+  // counterOfRefresh acts as a simple trigger. When incremented, it forces 
+  // child components (like EntriesList and WorkStats) to refetch their data.
   const [counterOfRefresh, setCounterOfRefresh] = useState(0)
+  
   const [responseFromBackend, setResponseFromBackend] = useState("")
   const [selectedRole, setSelectedRole] = useState(null)
   const [userId, setUserId] = useState(null)
   const [editingEntry, setEditingEntry] = useState(null);
   const [entries, setBaseEntries] = useState(null)
+  
+  // draftEntry holds real-time unsaved form data so the DailyHours 
+  // component can calculate total hours dynamically as the user types.
   const [draftEntry, setDraftEntry] = useState(null); 
   const [dailyLimit, setDailyLimit] = useState(8.0);
 
+  // useCallback prevents unnecessary re-renders of the Header component.
+  // When a user changes, we clear previous entries and drafts to prevent data leakage.
   const handleUserChange = useCallback((newId) => {
     setUserId(newId)
     setBaseEntries(null)
@@ -45,6 +59,7 @@ function App() {
   let content
   let headerText = "Loading..."
 
+  // Render different dashboard views based on the simulated logged-in user role
   if (selectedRole === "Student") {
     headerText = "Internship Journal"
     content = (
@@ -52,7 +67,7 @@ function App() {
         <WorkStats userId={userId} counterOfRefresh={counterOfRefresh} />
         <DailyHours entries={entries} draftEntry={draftEntry} dailyLimit={dailyLimit} />
         <EntriesList
-          key={userId}
+          key={userId} // Forces complete remount of the list when user changes
           userId={userId}
           counterOfRefresh={counterOfRefresh}
           setCounterOfRefresh={setCounterOfRefresh}

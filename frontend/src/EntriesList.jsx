@@ -1,3 +1,7 @@
+/**
+ * Manages the display of student journal entries. 
+ * Handles state transitions between viewing the list, editing an entry, or creating a new one.
+ */
 import { Fragment, useEffect, useState } from "react";
 import StatusBadge from "./StatusBadge";
 import EntriesForm from "./EntriesForm";
@@ -30,7 +34,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                 if (Array.isArray(data)) {
                     setStatus("loaded");
                     setEntriesList(data);
-                    setBaseEntries(data)
+                    setBaseEntries(data) // Bubbling entries data up for DailyHours calculation
                 } else {
                     throw new Error("Invalid data format");
                 }
@@ -42,6 +46,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
             });
     }, [userId, counterOfRefresh, setBaseEntries]);
 
+    // Submits an entry for supervisor review, transitioning it from 'draft' to 'submitted'
     function handleSubmit(entry) { 
         setErrorMessage("");
         
@@ -75,6 +80,7 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
         setEditingEntry(selectedEntry);
     }
 
+    // Dynamic header logic based on current list state
     let pText = "";
     if (status === "loaded") {
         if (showForm) {
