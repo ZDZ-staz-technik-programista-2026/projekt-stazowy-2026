@@ -96,9 +96,26 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                 </p>
             )}
             {!showForm && !editingEntry && status === "loaded" && (
-                <p className="px-4 py-2">
-                    <button className="bg-accent text-white text-lg py-2 px-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onClick={() => setShowForm(!showForm)}>+ New Entry</button>
-                </p>
+                <div className="px-4 py-2 flex justify-between items-center">
+                    <button
+                        className="bg-accent text-white text-lg py-2 px-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                        onClick={() => setShowForm(!showForm)}
+                    >
+                        + New Entry
+                    </button>
+
+                    <button
+                        className="border border-green-800 text-green-800 text-lg py-2 px-4 rounded hover:bg-green-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2"
+                        onClick={() => {
+                            window.open(
+                                `${API_URL}/api/export_csv?user_id=${userId}`,
+                                "_blank"
+                            );
+                        }}
+                    >
+                        Download CSV
+                    </button>
+                </div>
             )}
             {showForm && (
                 <EntriesForm userId={userId} setCounter={setCounterOfRefresh} setShowForm={setShowForm}  setDraftEntry={setDraftEntry}/>
