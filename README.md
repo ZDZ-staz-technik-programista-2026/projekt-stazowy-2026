@@ -453,10 +453,7 @@ The short version:
 
 ## Licence
 
-> 🔧 **TODO (day 18):** choosing the project licence is an internship task
-> (learning area 15: copyright and software licensing).
-> Until then this repository has no licence assigned.
-
+This project is licensed under the MIT License. Third-party dependencies and assets remain subject to their own licences.
 ---
 
 ## Language conventions
