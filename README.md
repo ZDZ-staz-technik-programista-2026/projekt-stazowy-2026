@@ -70,6 +70,16 @@ covering the INF.03 and INF.04 qualification units.
 
 ---
 
+## Live demo
+
+| Service | URL |
+|---|---|
+| Frontend | https://projekt-stazowy-2026.vercel.app/ |
+| Backend API | https://projekt-stazowy-2026.onrender.com |
+| API documentation | https://projekt-stazowy-2026.onrender.com/docs |
+
+---
+
 ## Local setup
 
 Every step below must work on a clean machine — this was verified by having a
