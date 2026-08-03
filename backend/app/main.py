@@ -201,6 +201,7 @@ app.include_router(stats_router)
 app.include_router(csv_router)
 origins = [
     "http://localhost:5173",  # default Vite URL
+    "https://projekt-stazowy-2026.vercel.app",   # Allowed production frontend
 ]
 
 app.add_middleware(
