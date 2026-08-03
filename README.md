@@ -181,11 +181,6 @@ Backend will be available at: http://localhost:8000/ (same as running it
 directly — see [Local setup](#local-setup) above).
 
 **Note:** The container uses SQLite by default, same as local development.
-To connect it to Aiven MySQL instead, pass the environment variables from
-your `.env` file:
-```bash
-docker run -p 8000:8000 --env-file .env internship-journal-backend
-```
 
 ### Frontend
 
@@ -391,7 +386,7 @@ backend/
 └── requirements.txt
 ```
 
-The `.env` file and certificate files are local only and must never be committed. They are excluded using `.gitignore`.
+The `.env` file and certificate files are local only and must never be committed or copied into the Docker image. They are excluded using `.gitignore` and `.dockerignore`.
 
 A `.env.example` file can be added to the repository as a template, but it must not contain real credentials or certificate paths specific to a developer environment.
 
