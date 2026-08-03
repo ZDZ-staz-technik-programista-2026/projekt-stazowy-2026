@@ -23,7 +23,6 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
     const [isSubmittedSelected, setIsSubmittedSelected] = useState(false);
     const [isApprovedSelected, setIsApprovedSelected] = useState(false);
     const [isRevisionSelected, setIsRevisionSelected] = useState(false);
-
     // --- DATA FETCHING ---
     // Runs when the component mounts or when userId / counterOfRefresh changes
     useEffect(() => {
@@ -283,31 +282,59 @@ export default function EntriesList({ userId, counterOfRefresh, setCounterOfRefr
                             </div>
                             
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-medium text-sm text-text-secondary w-24 shrink-0">Date Range:</span>
+                                <span className="font-medium text-sm text-text-secondary w-24 shrink-0">
+                                    Date Range:
+                                </span>
+
                                 <div className="flex items-center gap-2 flex-wrap">
-                                    <input 
-                                        type="date" 
-                                        className="border border-border-strong rounded-control px-2 py-1 text-sm focus:outline-accent bg-surface-card text-text-primary h-[30px]"
+
+                                    <input
+                                        type="date"
+                                        className="border border-border-strong rounded-control px-2 py-1 text-sm focus:outline-accent bg-surface-card text-text-primary h-7.5"
                                         value={filterDateFrom}
                                         onChange={(e) => setFilterDateFrom(e.target.value)}
                                     />
+
                                     <span className="text-text-secondary">-</span>
-                                    <input 
-                                        type="date" 
-                                        className="border border-border-strong rounded-control px-2 py-1 text-sm focus:outline-accent bg-surface-card text-text-primary h-[30px]"
+
+                                    <input
+                                        type="date"
+                                        className="border border-border-strong rounded-control px-2 py-1 text-sm focus:outline-accent bg-surface-card text-text-primary h-7.5"
                                         value={filterDateTo}
                                         onChange={(e) => setFilterDateTo(e.target.value)}
                                     />
-                                    
-                                    {/* Clear dates button - visible only if at least one date is selected */}
-                                    {(filterDateFrom !== "" || filterDateTo !== "") ? (
-                                        <button onClick={() => { setFilterDateFrom(""); setFilterDateTo(""); }} className="ml-2 flex items-center gap-1 bg-surface-card border border-border-strong rounded-control py-1 px-3 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-page">
-                                            Clear dates ✕
-                                        </button>
-                                    ) : null}
+
                                 </div>
                             </div>
-                            
+
+                            {(filterDateFrom || filterDateTo) && (
+                                <div className="flex flex-wrap gap-2">
+
+                                    {filterDateFrom && (
+                                        <button
+                                            onClick={() => setFilterDateFrom("")}
+                                            className="flex items-center gap-2 bg-status-draft-bg text-status-draft-fg rounded-control py-1 px-3 text-sm hover:opacity-80"
+                                        >
+                                            <span className="font-medium">
+                                                From: {filterDateFrom} ✕
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {filterDateTo && (
+                                        <button
+                                            onClick={() => setFilterDateTo("")}
+                                            className="flex items-center gap-2 bg-status-draft-bg text-status-draft-fg rounded-control py-1 px-3 text-sm hover:opacity-80"
+                                        >
+                                            <span className="font-medium">
+                                                To: {filterDateTo} ✕
+                                            </span>
+                                        </button>
+                                    )}
+
+                                </div>
+                            )}
+                                                        
                             {/* Clear all filters button - visible if ANY filter is active */}
                             {(isDraftSelected || isSubmittedSelected || isApprovedSelected || isRevisionSelected || filterDateFrom !== "" || filterDateTo !== "") ? (
                                 <div className="pt-2 mt-1 border-t border-border-strong flex justify-end">
