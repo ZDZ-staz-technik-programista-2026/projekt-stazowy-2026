@@ -1,30 +1,23 @@
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import SessionLocal
 from app.models import Entry, Review, User
-
-from app.services.time_calculations import (
-    calculate_hours,
-    InvalidTimeRangeError
-)
-
+from app.services import check_overlap, validate_transition
 from app.services.post_patch_validation import (
-    validate_time_range,
-    validate_future_date,
-    validate_description,
-    check_schedule_overlap,
     check_hours_limit,
+    check_schedule_overlap,
+    validate_description,
     validate_entry_status_for_patch,
+    validate_future_date,
+    validate_time_range,
 )
-
-from app.services import validate_transition, check_overlap
-
+from app.services.time_calculations import InvalidTimeRangeError, calculate_hours
 
 router = APIRouter(prefix="/api")
 
@@ -58,12 +51,15 @@ class EntryPatchRequest(BaseModel):
         if value is not None and value.tzinfo is not None:
             raise ValueError("Time value must not include timezone information.")
         return value
-    
+
+
 class SubmitEntryRequest(BaseModel):
     user_id: int
 
+
 class ApproveEntryRequest(BaseModel):
     created_by: int
+
 
 class ReturnEntryRequest(BaseModel):
     created_by: int
@@ -79,16 +75,9 @@ def get_db():
 
 
 def entries_query(db: Session):
-    return (
-        db.query(Entry)
-        .options(
-            joinedload(Entry.user)
-            .joinedload(User.role),
-
-            joinedload(Entry.reviews)
-            .joinedload(Review.created_by_user)
-            .joinedload(User.role)
-        )
+    return db.query(Entry).options(
+        joinedload(Entry.user).joinedload(User.role),
+        joinedload(Entry.reviews).joinedload(Review.created_by_user).joinedload(User.role),
     )
 
 
@@ -104,34 +93,28 @@ def format_review(review):
         "created_by": {
             "id": review.created_by_user.id,
             "name": review.created_by_user.name,
-            "role": review.created_by_user.role.name
-        }
+            "role": review.created_by_user.role.name,
+        },
     }
 
 
 def calculate_entry_hours(entry):
     if entry.start_time is None or entry.end_time is None:
         raise InvalidTimeRangeError()
-        
-    return calculate_hours(
-        entry.start_time,
-        entry.end_time
-    )
+
+    return calculate_hours(entry.start_time, entry.end_time)
 
 
 def get_latest_review(entry):
     if not entry.reviews:
         return None
 
-    return max(
-        entry.reviews,
-        key=lambda review: review.created_at
-    )
+    return max(entry.reviews, key=lambda review: review.created_at)
 
 
 def format_entry(entry):
     hours = calculate_entry_hours(entry)
-    
+
     return {
         "id": entry.id,
         "user_id": entry.user_id,
@@ -143,18 +126,12 @@ def format_entry(entry):
         "blockers": entry.blockers,
         "status": entry.status,
         "created_at": entry.created_at,
-        "latest_review": format_review(
-            get_latest_review(entry)
-        )
+        "latest_review": format_review(get_latest_review(entry)),
     }
 
 
-
 @router.get("/entries")
-def get_entries(
-    user_id: int = Query(...),
-    db: Session = Depends(get_db)
-):
+def get_entries(user_id: int = Query(...), db: Session = Depends(get_db)):
     """
     Returns time entries available for a given user.
 
@@ -171,16 +148,7 @@ def get_entries(
     - 403 INSUFFICIENT_PERMISSIONS when access is forbidden.
     - 400 INVALID_TIME_RANGE when stored entry times are invalid.
     """
-def get_entries(
-    user_id: int = Query(...),
-    db: Session = Depends(get_db)
-):
-    user = (
-        db.query(User)
-        .options(joinedload(User.role))
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).options(joinedload(User.role)).filter(User.id == user_id).first()
 
     if user is None:
         return JSONResponse(
@@ -190,10 +158,8 @@ def get_entries(
                 "error": "NOT_FOUND",
                 "message": "User not found.",
                 "code": "USER_NOT_FOUND",
-                "details": {
-                    "user_id": user_id
-                }
-            }
+                "details": {"user_id": user_id},
+            },
         )
 
     query = entries_query(db)
@@ -202,7 +168,7 @@ def get_entries(
         query = query.filter(Entry.user_id == user.id)
 
     elif user.role.name == "Supervisor":
-        pass 
+        pass
 
     else:
         return JSONResponse(
@@ -212,41 +178,23 @@ def get_entries(
                 "error": "FORBIDDEN",
                 "message": "You do not have permission to access this resource.",
                 "code": "INSUFFICIENT_PERMISSIONS",
-                "details": {
-                    "user_id": user.id,
-                    "role": user.role.name
-                }
-            }
+                "details": {"user_id": user.id, "role": user.role.name},
+            },
         )
 
     entries = query.all()
 
     try:
-        return [
-            format_entry(entry)
-            for entry in entries
-        ]
+        return [format_entry(entry) for entry in entries]
 
     except InvalidTimeRangeError:
         start_val = "..."
         end_val = "..."
 
         for el in entries:
-            if (
-                el.start_time is None
-                or el.end_time is None
-                or el.end_time <= el.start_time
-            ):
-                start_val = (
-                    str(el.start_time)
-                    if el.start_time is not None
-                    else "..."
-                )
-                end_val = (
-                    str(el.end_time)
-                    if el.end_time is not None
-                    else "..."
-                )
+            if el.start_time is None or el.end_time is None or el.end_time <= el.start_time:
+                start_val = str(el.start_time) if el.start_time is not None else "..."
+                end_val = str(el.end_time) if el.end_time is not None else "..."
                 break
 
         return JSONResponse(
@@ -256,20 +204,13 @@ def get_entries(
                 "error": "BAD_REQUEST",
                 "message": "Validation failed: 'end_time' cannot occur before or equal to 'start_time'.",
                 "code": "INVALID_TIME_RANGE",
-                "details": {
-                    "start_time": start_val,
-                    "end_time": end_val
-                }
-            }
+                "details": {"start_time": start_val, "end_time": end_val},
+            },
         )
 
 
 @router.get("/entries/{id}")
-def get_entry(
-    id: int,
-    user_id: int = Query(...),
-    db: Session = Depends(get_db)
-):
+def get_entry(id: int, user_id: int = Query(...), db: Session = Depends(get_db)):
     """
     Returns a single entry by ID.
 
@@ -287,17 +228,7 @@ def get_entry(
     - 403 INSUFFICIENT_PERMISSIONS when access is forbidden.
     - 400 INVALID_TIME_RANGE when entry times are invalid.
     """
-def get_entry(
-    id: int,
-    user_id: int = Query(...),
-    db: Session = Depends(get_db)
-):
-    user = (
-        db.query(User)
-        .options(joinedload(User.role))
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).options(joinedload(User.role)).filter(User.id == user_id).first()
 
     if user is None:
         return JSONResponse(
@@ -307,24 +238,17 @@ def get_entry(
                 "error": "NOT_FOUND",
                 "message": "User not found.",
                 "code": "USER_NOT_FOUND",
-                "details": {
-                    "user_id": user_id
-                }
-            }
+                "details": {"user_id": user_id},
+            },
         )
 
-    query = (
-        entries_query(db)
-        .filter(Entry.id == id)
-    )
+    query = entries_query(db).filter(Entry.id == id)
 
     if user.role.name == "Student":
-        query = query.filter(
-            Entry.user_id == user.id
-        )
+        query = query.filter(Entry.user_id == user.id)
 
     elif user.role.name == "Supervisor":
-        pass  
+        pass
 
     else:
         return JSONResponse(
@@ -334,11 +258,8 @@ def get_entry(
                 "error": "FORBIDDEN",
                 "message": "You do not have permission to access this resource.",
                 "code": "INSUFFICIENT_PERMISSIONS",
-                "details": {
-                    "user_id": user.id,
-                    "role": user.role.name
-                }
-            }
+                "details": {"user_id": user.id, "role": user.role.name},
+            },
         )
 
     entry = query.first()
@@ -351,10 +272,8 @@ def get_entry(
                 "error": "NOT_FOUND",
                 "message": f"Target time entry resource record with ID {id} was not found.",
                 "code": "ENTRY_NOT_FOUND",
-                "details": {
-                    "entry_id": id
-                }
-            }
+                "details": {"entry_id": id},
+            },
         )
 
     try:
@@ -369,25 +288,15 @@ def get_entry(
                 "message": "Validation failed: 'end_time' cannot occur before or equal to 'start_time'.",
                 "code": "INVALID_TIME_RANGE",
                 "details": {
-                    "start_time": (
-                        str(entry.start_time)
-                        if entry.start_time is not None
-                        else "..."
-                    ),
-                    "end_time": (
-                        str(entry.end_time)
-                        if entry.end_time is not None
-                        else "..."
-                    )
-                }
-            }
+                    "start_time": str(entry.start_time) if entry.start_time is not None else "...",
+                    "end_time": str(entry.end_time) if entry.end_time is not None else "...",
+                },
+            },
         )
 
+
 @router.post("/entries", status_code=status.HTTP_201_CREATED)
-def create_entry(
-    request: EntryCreateRequest,
-    db: Session = Depends(get_db)
-):
+def create_entry(request: EntryCreateRequest, db: Session = Depends(get_db)):
     """
     Creates a new draft time entry.
 
@@ -405,14 +314,10 @@ def create_entry(
     Returns:
     - Created entry with generated ID.
     """
-def create_entry(
-    request: EntryCreateRequest,
-    db: Session = Depends(get_db)
-):
     hours_or_error = validate_time_range(request.start_time, request.end_time)
     if isinstance(hours_or_error, JSONResponse):
         return hours_or_error
-    
+
     calculated_hours = hours_or_error
 
     future_date_error = validate_future_date(request.date)
@@ -423,7 +328,13 @@ def create_entry(
     if isinstance(description_error, JSONResponse):
         return description_error
 
-    check_schedule_overlap(db=db, user_id=request.user_id, entry_date=request.date, start_time=request.start_time, end_time=request.end_time)
+    check_schedule_overlap(
+        db=db,
+        user_id=request.user_id,
+        entry_date=request.date,
+        start_time=request.start_time,
+        end_time=request.end_time,
+    )
 
     user_not_found_error = check_hours_limit(
         db=db, user_id=request.user_id, entry_date=request.date, requested_hours=calculated_hours
@@ -438,18 +349,14 @@ def create_entry(
         end_time=request.end_time,
         description=request.description,
         blockers=request.blockers,
-        status="draft"
+        status="draft",
     )
 
     db.add(entry)
     db.commit()
     db.refresh(entry)
 
-    full_entry = (
-        entries_query(db)
-        .filter(Entry.id == entry.id)
-        .first()
-    )
+    full_entry = entries_query(db).filter(Entry.id == entry.id).first()
 
     return format_entry(full_entry)
 
@@ -477,16 +384,7 @@ def patch_entry(
     Returns:
     - Updated entry after successful modification.
     """
-def patch_entry(
-    id: int,
-    request: EntryPatchRequest,
-    db: Session = Depends(get_db),
-):
-    entry = (
-        entries_query(db)
-        .filter(Entry.id == id)
-        .first()
-    )
+    entry = entries_query(db).filter(Entry.id == id).first()
 
     if entry is None:
         return JSONResponse(
@@ -496,45 +394,21 @@ def patch_entry(
                 "error": "NOT_FOUND",
                 "message": f"Target time entry resource record with ID {id} was not found.",
                 "code": "ENTRY_NOT_FOUND",
-                "details": {
-                    "entry_id": id
-                }
-            }
+                "details": {"entry_id": id},
+            },
         )
 
     status_error = validate_entry_status_for_patch(entry.status)
 
     if isinstance(status_error, JSONResponse):
         return status_error
-    
-    new_date = (
-        request.date
-        if request.date is not None
-        else entry.date
-    )
 
-    new_start = (
-        request.start_time
-        if request.start_time is not None
-        else entry.start_time
-    )
+    new_date = request.date if request.date is not None else entry.date
+    new_start = request.start_time if request.start_time is not None else entry.start_time
+    new_end = request.end_time if request.end_time is not None else entry.end_time
+    new_description = request.description if request.description is not None else entry.description
 
-    new_end = (
-        request.end_time
-        if request.end_time is not None
-        else entry.end_time
-    )
-
-    new_description = (
-        request.description
-        if request.description is not None
-        else entry.description
-    )
-
-    hours_or_error = validate_time_range(
-        new_start,
-        new_end
-    )
+    hours_or_error = validate_time_range(new_start, new_end)
 
     if isinstance(hours_or_error, JSONResponse):
         return hours_or_error
@@ -549,17 +423,10 @@ def patch_entry(
 
     existing_entries = (
         db.query(Entry)
-        .filter(
-            Entry.user_id == entry.user_id,
-            Entry.date == new_date,
-            Entry.id != entry.id
-        )
+        .filter(Entry.user_id == entry.user_id, Entry.date == new_date, Entry.id != entry.id)
         .all()
     )
 
-    # Exclude the entry being edited (Entry.id != entry.id) - otherwise editing
-    # an entry's own time range would always "overlap" with its own prior
-    # stored version before the PATCH is committed.
     for existing in existing_entries:
         check_overlap(new_start, new_end, existing.start_time, existing.end_time, existing.id)
 
@@ -591,14 +458,9 @@ def patch_entry(
     db.commit()
     db.refresh(entry)
 
-    updated_entry = (
-        entries_query(db)
-        .filter(Entry.id == entry.id)
-        .first()
-    )
+    updated_entry = entries_query(db).filter(Entry.id == entry.id).first()
 
     return format_entry(updated_entry)
-
 
 @router.post("/entries/{id}/submit")
 def submit_entry(
