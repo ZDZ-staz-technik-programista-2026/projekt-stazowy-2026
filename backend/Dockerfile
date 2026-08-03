@@ -16,7 +16,7 @@ WORKDIR /app
 # doesn't change, Docker reuses the cached "pip install" layer on every
 # rebuild, instead of re-downloading every package each time you change a
 # single line of application code.
-COPY requirem   ents.txt .
+COPY requirements.txt .
 
 # --no-cache-dir: don't keep pip's own download cache inside the image -
 # we're not going to run pip again in this container, so keeping it would
