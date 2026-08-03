@@ -165,7 +165,7 @@ X passed in 0.XXs
 
 ### Running the backend in Docker (optional)
 
-**Prerequisites:** Docker installed and running.
+**Prerequisites:** Docker Desktop installed and running.
 
 Build the image (run from the `backend/` directory):
 ```bash
@@ -180,21 +180,12 @@ docker run -p 8000:8000 internship-journal-backend
 Backend will be available at: http://localhost:8000/ (same as running it
 directly — see [Local setup](#local-setup) above).
 
-**Note:** the container uses SQLite by default, same as local development.
+**Note:** The container uses SQLite by default, same as local development.
 To connect it to Aiven MySQL instead, pass the environment variables from
 your `.env` file:
 ```bash
 docker run -p 8000:8000 --env-file .env internship-journal-backend
 ```
-
-**Development mode (live code reload, no rebuild needed):**
-Mount your local backend folder into the container so code changes are
-picked up immediately, without rebuilding the image:
-```bash
-docker run -p 8000:8000 -v "$(pwd):/app" internship-journal-backend
-```
-On Windows PowerShell, use `${PWD}` instead of `$(pwd)`.
-
 
 ### Frontend
 
