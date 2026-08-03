@@ -164,6 +164,12 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check():
+    """
+    Checks whether the backend application is running.
+
+    Returns:
+        HTTP 200 response with application status.
+    """
     return {
-        "status" : "ok",
+        "status": "ok",
     }
