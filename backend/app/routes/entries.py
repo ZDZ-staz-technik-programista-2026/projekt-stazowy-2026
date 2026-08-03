@@ -155,6 +155,26 @@ def get_entries(
     user_id: int = Query(...),
     db: Session = Depends(get_db)
 ):
+    """
+    Returns time entries available for a given user.
+
+    Access scope:
+    - Students can access only their own entries.
+    - Supervisors can access entries without user filtering.
+
+    Workflow and validation:
+    - The provided user_id must exist.
+    - Returned entries are validated before formatting.
+
+    Possible errors:
+    - 404 USER_NOT_FOUND when user does not exist.
+    - 403 INSUFFICIENT_PERMISSIONS when access is forbidden.
+    - 400 INVALID_TIME_RANGE when stored entry times are invalid.
+    """
+def get_entries(
+    user_id: int = Query(...),
+    db: Session = Depends(get_db)
+):
     user = (
         db.query(User)
         .options(joinedload(User.role))
@@ -245,6 +265,28 @@ def get_entries(
 
 
 @router.get("/entries/{id}")
+def get_entry(
+    id: int,
+    user_id: int = Query(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns a single entry by ID.
+
+    Access scope:
+    - Students can view only their own entries.
+    - Supervisors can view entries from all users.
+
+    Workflow and validation:
+    - The requesting user must exist.
+    - The entry must exist and be accessible for the user's role.
+
+    Possible errors:
+    - 404 USER_NOT_FOUND when user does not exist.
+    - 404 ENTRY_NOT_FOUND when entry does not exist.
+    - 403 INSUFFICIENT_PERMISSIONS when access is forbidden.
+    - 400 INVALID_TIME_RANGE when entry times are invalid.
+    """
 def get_entry(
     id: int,
     user_id: int = Query(...),
@@ -346,6 +388,27 @@ def create_entry(
     request: EntryCreateRequest,
     db: Session = Depends(get_db)
 ):
+    """
+    Creates a new draft time entry.
+
+    Workflow and validation:
+    - Validates start and end time range.
+    - Validates entry date.
+    - Validates description content.
+    - Checks schedule overlap.
+    - Checks user working hour limits.
+
+    Possible errors:
+    - Validation errors for invalid input data.
+    - Errors when schedule or hour limit rules are violated.
+
+    Returns:
+    - Created entry with generated ID.
+    """
+def create_entry(
+    request: EntryCreateRequest,
+    db: Session = Depends(get_db)
+):
     hours_or_error = validate_time_range(request.start_time, request.end_time)
     if isinstance(hours_or_error, JSONResponse):
         return hours_or_error
@@ -392,6 +455,28 @@ def create_entry(
 
 
 @router.patch("/entries/{id}")
+def patch_entry(
+    id: int,
+    request: EntryPatchRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Updates an existing time entry.
+
+    Workflow and validation:
+    - Entry must exist and allow modification.
+    - Updated fields are validated.
+    - Schedule overlap is checked.
+    - Working hour limits are verified.
+    - Only provided fields are modified.
+
+    Possible errors:
+    - 404 ENTRY_NOT_FOUND when entry does not exist.
+    - Validation errors when updated data is invalid.
+
+    Returns:
+    - Updated entry after successful modification.
+    """
 def patch_entry(
     id: int,
     request: EntryPatchRequest,
