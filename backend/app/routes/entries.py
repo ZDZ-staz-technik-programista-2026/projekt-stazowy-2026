@@ -33,6 +33,12 @@ class EntryCreateRequest(BaseModel):
     @field_validator("start_time", "end_time")
     @classmethod
     def reject_timezone(cls, value: datetime.time) -> datetime.time:
+        """
+        Ensures that provided time fields do not include timezone information.
+
+        Raises:
+            ValueError: If tzinfo is present on the datetime.time object.
+        """
         if value.tzinfo is not None:
             raise ValueError("Time value must not include timezone information.")
         return value
@@ -48,6 +54,12 @@ class EntryPatchRequest(BaseModel):
     @field_validator("start_time", "end_time")
     @classmethod
     def reject_timezone(cls, value: Optional[datetime.time]) -> Optional[datetime.time]:
+        """
+        Ensures that optional time fields do not include timezone information if provided.
+
+        Raises:
+            ValueError: If tzinfo is present on a non-None datetime.time object.
+        """
         if value is not None and value.tzinfo is not None:
             raise ValueError("Time value must not include timezone information.")
         return value
@@ -67,6 +79,10 @@ class ReturnEntryRequest(BaseModel):
 
 
 def get_db():
+    """
+    FastAPI dependency yielding a SQLAlchemy database session.
+    Closes the session automatically upon request completion.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -75,13 +91,32 @@ def get_db():
 
 
 def entries_query(db: Session):
+    """
+    Constructs a base SQLAlchemy query for Entry objects with eager-loaded
+    user, role, and review relationships.
+
+    Args:
+        db: Active SQLAlchemy database session.
+
+    Returns:
+        Base SQLAlchemy query for entries.
+    """
     return db.query(Entry).options(
         joinedload(Entry.user).joinedload(User.role),
         joinedload(Entry.reviews).joinedload(Review.created_by_user).joinedload(User.role),
     )
 
 
-def format_review(review):
+def format_review(review: Optional[Review]) -> Optional[dict]:
+    """
+    Formats a Review model instance into a standard JSON-compatible dictionary response.
+
+    Args:
+        review: Review ORM model instance or None.
+
+    Returns:
+        Formatted review dictionary or None if review is None.
+    """
     if review is None:
         return None
 
@@ -98,21 +133,51 @@ def format_review(review):
     }
 
 
-def calculate_entry_hours(entry):
+def calculate_entry_hours(entry: Entry) -> float:
+    """
+    Calculates duration in hours between an entry's start_time and end_time.
+
+    Args:
+        entry: Entry ORM model instance containing start_time and end_time.
+
+    Raises:
+        InvalidTimeRangeError: If start_time or end_time is missing or invalid.
+
+    Returns:
+        Calculated hours as a float.
+    """
     if entry.start_time is None or entry.end_time is None:
         raise InvalidTimeRangeError()
 
     return calculate_hours(entry.start_time, entry.end_time)
 
 
-def get_latest_review(entry):
+def get_latest_review(entry: Entry) -> Optional[Review]:
+    """
+    Retrieves the most recent review associated with a given entry based on creation timestamp.
+
+    Args:
+        entry: Entry ORM model instance.
+
+    Returns:
+        The latest Review object or None if no reviews exist.
+    """
     if not entry.reviews:
         return None
 
     return max(entry.reviews, key=lambda review: review.created_at)
 
 
-def format_entry(entry):
+def format_entry(entry: Entry) -> dict:
+    """
+    Formats an Entry model instance into a JSON-serializable dictionary structure.
+
+    Args:
+        entry: Entry ORM model instance.
+
+    Returns:
+        Formatted entry dictionary including calculated hours and latest review details.
+    """
     hours = calculate_entry_hours(entry)
 
     return {
@@ -421,6 +486,9 @@ def patch_entry(
     if isinstance(description_error, JSONResponse):
         return description_error
 
+    # Exclude the entry being edited (Entry.id != entry.id) - otherwise editing
+    # an entry's own time range would always "overlap" with its own prior
+    # stored version before the PATCH is committed.
     existing_entries = (
         db.query(Entry)
         .filter(Entry.user_id == entry.user_id, Entry.date == new_date, Entry.id != entry.id)

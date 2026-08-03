@@ -1,17 +1,21 @@
-from fastapi import FastAPI, status, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
-from app.services import InvalidStatusTransitionError, ScheduleOverlapError, DailyLimitExceededError, WeeklyLimitExceededError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.database import Base, engine
-from app.models import *
 
+from app.database import Base, engine
 from app.insert_data import insert_data
+from app.models import *
 from app.routes.basicAPI import router as basic_api_router
+from app.routes.csv import router as csv_router
 from app.routes.entries import router as entries_router
 from app.routes.stats import router as stats_router
-from app.routes.csv import router as csv_router
-
+from app.services import (
+    DailyLimitExceededError,
+    InvalidStatusTransitionError,
+    ScheduleOverlapError,
+    WeeklyLimitExceededError,
+)
 
 Base.metadata.create_all(bind=engine)
 insert_data()
@@ -19,8 +23,19 @@ insert_data()
 
 app = FastAPI()
 
+
 @app.exception_handler(InvalidStatusTransitionError)
 def handle_invalid_status_transition(request: Request, exc: InvalidStatusTransitionError):
+    """
+    Handles errors when an invalid workflow status transition is attempted on an entry.
+
+    Args:
+        request: The incoming FastAPI HTTP request.
+        exc: The raised InvalidStatusTransitionError instance.
+
+    Returns:
+        JSONResponse with HTTP 409 Conflict status and error details.
+    """
     return JSONResponse(
         status_code=409,
         content={
@@ -31,6 +46,7 @@ def handle_invalid_status_transition(request: Request, exc: InvalidStatusTransit
             "details": {"current_status": exc.current_status} if exc.current_status else {},
         },
     )
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -85,6 +101,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(ScheduleOverlapError)
 def handle_schedule_overlap(request: Request, exc: ScheduleOverlapError):
+    """
+    Handles errors caused by conflicting/overlapping time entry schedules.
+
+    Args:
+        request: The incoming FastAPI HTTP request.
+        exc: The raised ScheduleOverlapError instance containing conflict info.
+
+    Returns:
+        JSONResponse with HTTP 409 Conflict status and conflicting entry details.
+    """
     return JSONResponse(
         status_code=409,
         content={
@@ -99,8 +125,19 @@ def handle_schedule_overlap(request: Request, exc: ScheduleOverlapError):
         },
     )
 
+
 @app.exception_handler(DailyLimitExceededError)
 def handle_daily_limit_exceeded(request: Request, exc: DailyLimitExceededError):
+    """
+    Handles errors when a user's total requested hours exceed the 8-hour daily limit.
+
+    Args:
+        request: The incoming FastAPI HTTP request.
+        exc: The raised DailyLimitExceededError instance.
+
+    Returns:
+        JSONResponse with HTTP 400 Bad Request status and daily limit breakdown.
+    """
     return JSONResponse(
         status_code=400,
         content={
@@ -120,6 +157,16 @@ def handle_daily_limit_exceeded(request: Request, exc: DailyLimitExceededError):
 
 @app.exception_handler(WeeklyLimitExceededError)
 def handle_weekly_limit_exceeded(request: Request, exc: WeeklyLimitExceededError):
+    """
+    Handles errors when a user's total requested hours exceed the 40-hour weekly limit.
+
+    Args:
+        request: The incoming FastAPI HTTP request.
+        exc: The raised WeeklyLimitExceededError instance.
+
+    Returns:
+        JSONResponse with HTTP 400 Bad Request status and weekly limit breakdown.
+    """
     return JSONResponse(
         status_code=400,
         content={
@@ -135,6 +182,8 @@ def handle_weekly_limit_exceeded(request: Request, exc: WeeklyLimitExceededError
             },
         },
     )
+
+
 def _readable_message(field_name: str, error_type: str) -> str:
     """Map a Pydantic error `type` to a short, frontend-displayable message."""
     if "time" in error_type:
@@ -145,20 +194,21 @@ def _readable_message(field_name: str, error_type: str) -> str:
         return f"'{field_name}' must be a whole number."
     return f"'{field_name}' has an invalid value."
 
+
 app.include_router(basic_api_router)
 app.include_router(entries_router)
 app.include_router(stats_router)
 app.include_router(csv_router)
 origins = [
-    "http://localhost:5173", # default Vite URL
+    "http://localhost:5173",  # default Vite URL
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = origins,
-    allow_credentials = False,  # No cookies | Can change later when doing authentication
-    allow_methods = ["*"],
-    allow_headers = ["*"],
+    allow_origins=origins,
+    allow_credentials=False,  # No cookies | Can change later when doing authentication
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
